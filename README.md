@@ -1,79 +1,60 @@
-# 📚 Book Sharing App
+@'
+## Plantilla: FastAPI + PostgreSQL + Docker
 
-Una aplicación para compartir libros entre amigos, desarrollada con FastAPI y PostgreSQL.
+Plantilla lista para arrancar proyectos con FastAPI, PostgreSQL (Docker) y Alembic.
 
-## 🚀 Características
+### Requisitos
+- Docker y Docker Compose
+- (Opcional) Python 3.11+ y Poetry para desarrollo local
 
-- Sistema de autenticación JWT
-- Gestión de bibliotecas personales
-- Grupos de amigos para compartir libros
-- Sistema de préstamos con chat integrado
-- OCR para extraer información de libros desde fotos
-- Integración con APIs externas (OpenLibrary, Google Books)
+### Estructura
+- `app/`: aplicación FastAPI (config, modelos, esquemas, etc.)
+- `alembic/` y `alembic.ini`: migraciones de base de datos
+- `docker-compose.yml`: servicios `app` y `db`
+- `env.example`: variables de entorno de ejemplo
 
-## 🛠️ Stack Tecnológico
-
-- **Backend**: FastAPI, SQLAlchemy, PostgreSQL
-- **Autenticación**: JWT con Passlib
-- **OCR**: EasyOCR
-- **APIs Externas**: OpenLibrary, Google Books
-- **Testing**: Pytest
-
-## 📁 Estructura del Proyecto
-
-```
-book_sharing_app/
-├── app/
-│   ├── models/          # Modelos SQLAlchemy
-│   ├── schemas/         # Schemas Pydantic
-│   ├── api/            # Endpoints FastAPI
-│   ├── services/       # Lógica de negocio
-│   └── utils/          # Utilidades
-├── tests/              # Tests
-├── alembic/            # Migraciones
-└── uploads/            # Archivos temporales
-```
-
-## 🚀 Instalación
-
-1. **Clonar el repositorio**
-2. **Crear entorno virtual**
+### Pasos rápidos (como template)
+1. Crea tu repositorio con “Use this template”.
+2. Copia `env.example` a `.env` y ajusta credenciales y `DATABASE_URL`.
+3. Levanta servicios:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   # venv\Scripts\activate   # Windows
+   docker compose up -d
    ```
-3. **Instalar dependencias**
+4. Aplica migraciones (si hay):
    ```bash
-   pip install -r requirements.txt
+   alembic upgrade head
    ```
-4. **Configurar base de datos**
-   ```bash
-   docker-compose up -d
-   ```
-5. **Configurar variables de entorno**
-   ```bash
-   cp env.example .env
-   # Editar .env con tus valores
-   ```
+5. Abre la documentación:
+   - `http://localhost:8000/docs`
 
-## 📝 Roadmap
+### Variables de entorno
+- Crea `.env` a partir de `env.example`.
+- Ajusta `DATABASE_URL` para la app y Alembic (Postgres en Docker).
 
-Este proyecto está diseñado para aprendizaje progresivo:
+### Migraciones (Alembic)
+- Crear revisión:
+  ```bash
+  alembic revision --autogenerate -m "mensaje"
+  ```
+- Aplicar:
+  ```bash
+  alembic upgrade head
+  ```
+- Revertir:
+  ```bash
+  alembic downgrade -1
+  ```
 
-- **Semana 1**: Setup inicial y autenticación
-- **Semana 2**: Gestión de libros y APIs externas
-- **Semana 3**: Sistema de grupos
-- **Semana 4**: Sistema de préstamos
-- **Semana 5**: Chat y comunicación
-- **Semana 6**: Testing y deployment
+### Desarrollo
+- Uvicorn con reload:
+  ```bash
+  uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+  ```
 
-## 📚 Recursos de Aprendizaje
+### Personalización
+- Cambia nombre del proyecto y módulos en `app/`.
+- Configura CORS, auth, logging, etc. según necesidades.
 
-- [Documentación FastAPI](https://fastapi.tiangolo.com/)
-- [SQLAlchemy Tutorial](https://docs.sqlalchemy.org/en/20/tutorial/)
-- [OpenLibrary API](https://openlibrary.org/developers/api)
-
----
-
-**¡Disfruta aprendiendo! 🎓**
+### Licencia
+- Ver `LICENSE`.
+'@ | Set-Content -NoNewline -Path README.md
