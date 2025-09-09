@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     # APIs externas
     OPENLIBRARY_BASE_URL: str = "https://openlibrary.org"
     GOOGLE_BOOKS_API_KEY: Optional[str] = None
+    REDIS_URL: Optional[str] = "redis://localhost:6379/0"
+    CACHE_TTL_SECONDS: int = 6 * 60 * 60  # 6 horas
     
     # Configuración de la aplicación
     DEBUG: bool = True
