@@ -6,7 +6,9 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 from app.database import Base
-from app.models import user  # Importar todos los modelos aquí
+from app.models import user  # Importar modelos existentes
+from app.models import book  # Importar nuevos modelos para autogenerate
+from app.models import loan  # Modelo de préstamos
 from app.config import settings
 
 # this is the Alembic Config object, which provides
@@ -29,8 +31,12 @@ target_metadata = Base.metadata
 
 
 def get_url():
-    """Get database URL from settings"""
-    return settings.DATABASE_URL
+    """Obtiene la URL de base de datos, priorizando alembic.ini.
+
+    Si existe `sqlalchemy.url` en alembic.ini, la usa. Si no, usa settings.
+    """
+    ini_url = config.get_main_option("sqlalchemy.url")
+    return ini_url or settings.DATABASE_URL
 
 
 def run_migrations_offline() -> None:

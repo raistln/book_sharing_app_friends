@@ -40,11 +40,9 @@ async def health_check():
     return {"status": "healthy", "environment": settings.ENVIRONMENT}
 
 
-# Importar y registrar routers aquí cuando los creemos
-# from app.api import auth, users, books, groups, loans, messages
-# app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-# app.include_router(users.router, prefix="/api/users", tags=["users"])
-# app.include_router(books.router, prefix="/api/books", tags=["books"])
-# app.include_router(groups.router, prefix="/api/groups", tags=["groups"])
-# app.include_router(loans.router, prefix="/api/loans", tags=["loans"])
-# app.include_router(messages.router, prefix="/api/messages", tags=["messages"])
+from app.api import books as books_router
+from app.api import loans as loans_router
+
+# Registro de routers
+app.include_router(books_router.router, prefix="/api/books", tags=["books"])
+app.include_router(loans_router.router, prefix="/api/loans", tags=["loans"])
