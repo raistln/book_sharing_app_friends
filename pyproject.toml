@@ -23,7 +23,9 @@ dependencies = [
     "pytest>=7.4.3",
     "pytest-asyncio>=0.21.1",
     "easyocr (>=1.7.2,<2.0.0)",
-    "redis>=5.0.0"
+    "redis>=5.0.0",
+    "pyzbar>=0.1.9",
+    "opencv-python>=4.8.0"
 ]
 
 [project.optional-dependencies]

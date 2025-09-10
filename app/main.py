@@ -9,6 +9,7 @@ from app.api.users import router as users_router
 from app.api.books import router as books_router
 from app.api.loans import router as loans_router
 from app.api.search import router as search_router
+from app.api.scan import router as scan_router
 
 # Crear la aplicación FastAPI
 app = FastAPI(
@@ -35,6 +36,7 @@ app.include_router(users_router)
 app.include_router(books_router, prefix="/books", tags=["books"])
 app.include_router(loans_router, prefix="/loans", tags=["loans"])
 app.include_router(search_router)
+app.include_router(scan_router)
 
 @app.get("/")
 async def root():
