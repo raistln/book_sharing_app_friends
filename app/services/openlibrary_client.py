@@ -2,6 +2,7 @@
 Cliente para OpenLibrary API: búsqueda por título y por ISBN.
 """
 from typing import Any, Dict, List, Optional
+import logging
 
 import httpx
 
@@ -12,10 +13,12 @@ class OpenLibraryClient:
     def __init__(self, base_url: Optional[str] = None, http_client: Optional[httpx.Client] = None) -> None:
         self.base_url = base_url or settings.OPENLIBRARY_BASE_URL.rstrip("/")
         self.http = http_client or httpx.Client(timeout=10.0)
+        self.logger = logging.getLogger(__name__)
 
     def search_by_title(self, title: str, limit: int = 5) -> List[Dict[str, Any]]:
         url = f"{self.base_url}/search.json"
         params = {"q": title, "limit": limit}
+        self.logger.info("openlibrary search_by_title title=%s limit=%s", title, limit)
         r = self.http.get(url, params=params)
         r.raise_for_status()
         data = r.json()
@@ -26,6 +29,7 @@ class OpenLibraryClient:
         # Usamos el endpoint de búsqueda por título con filtro isbn para consistencia
         url = f"{self.base_url}/search.json"
         params = {"q": f"isbn:{isbn}", "limit": 5}
+        self.logger.info("openlibrary search_by_isbn isbn=%s", isbn)
         r = self.http.get(url, params=params)
         r.raise_for_status()
         data = r.json()

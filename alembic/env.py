@@ -9,6 +9,8 @@ from app.database import Base
 from app.models import user  # Importar modelos existentes
 from app.models import book  # Importar nuevos modelos para autogenerate
 from app.models import loan  # Modelo de préstamos
+from app.models import group  # Modelo de grupos
+from app.models import invitation  # Modelo de invitaciones
 from app.config import settings
 
 # this is the Alembic Config object, which provides

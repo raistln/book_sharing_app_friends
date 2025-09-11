@@ -25,7 +25,7 @@ class Loan(Base):
     book_id = Column(UUID(as_uuid=True), ForeignKey("books.id", ondelete="CASCADE"), nullable=False, index=True)
     borrower_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     lender_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    group_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    group_id = Column(UUID(as_uuid=True), ForeignKey("groups.id", ondelete="CASCADE"), nullable=True, index=True)
 
     status = Column(Enum(LoanStatus, name="loan_status"), nullable=False, server_default=LoanStatus.requested.name)
 
@@ -38,6 +38,7 @@ class Loan(Base):
     book = relationship("Book", lazy="joined")
     borrower = relationship("User", foreign_keys=[borrower_id], lazy="joined")
     lender = relationship("User", foreign_keys=[lender_id], lazy="joined")
+    group = relationship("Group", back_populates="loans")
 
     def __repr__(self):
         return f"<Loan(id={self.id}, book_id={self.book_id}, status={self.status})>"

@@ -2,6 +2,7 @@
 Aplicación principal FastAPI
 """
 from fastapi import FastAPI
+import logging
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.api.auth import router as auth_router
@@ -10,6 +11,16 @@ from app.api.books import router as books_router
 from app.api.loans import router as loans_router
 from app.api.search import router as search_router
 from app.api.scan import router as scan_router
+from app.api.groups import router as groups_router
+from app.api.group_books import router as group_books_router
+
+# Configuración básica de logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logging.getLogger("app.api").setLevel(logging.INFO)
+logging.getLogger("app.services").setLevel(logging.INFO)
 
 # Crear la aplicación FastAPI
 app = FastAPI(
@@ -37,6 +48,8 @@ app.include_router(books_router, prefix="/books", tags=["books"])
 app.include_router(loans_router, prefix="/loans", tags=["loans"])
 app.include_router(search_router)
 app.include_router(scan_router)
+app.include_router(groups_router)
+app.include_router(group_books_router)
 
 @app.get("/")
 async def root():

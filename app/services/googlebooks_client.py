@@ -2,6 +2,7 @@
 Cliente para Google Books API como fallback.
 """
 from typing import Any, Dict, List, Optional
+import logging
 
 import httpx
 
@@ -13,6 +14,7 @@ class GoogleBooksClient:
         self.base_url = "https://www.googleapis.com/books/v1"
         self.api_key = api_key or settings.GOOGLE_BOOKS_API_KEY
         self.http = http_client or httpx.Client(timeout=10.0)
+        self.logger = logging.getLogger(__name__)
 
     def search_by_title(self, title: str, limit: int = 5) -> List[Dict[str, Any]]:
         q = f"intitle:{title}"
@@ -27,6 +29,7 @@ class GoogleBooksClient:
         params = {"q": q, "maxResults": limit}
         if self.api_key:
             params["key"] = self.api_key
+        self.logger.info("googlebooks _search q=%s limit=%s", q, limit)
         r = self.http.get(url, params=params)
         r.raise_for_status()
         data = r.json()

@@ -18,6 +18,62 @@ class BookStatus(enum.Enum):
     reserved = "reserved"
 
 
+class BookType(enum.Enum):
+    novel = "novel"
+    comic = "comic"
+    manga = "manga"
+    graphic_novel = "graphic_novel"
+    short_story = "short_story"
+    poetry = "poetry"
+    essay = "essay"
+    biography = "biography"
+    autobiography = "autobiography"
+    other = "other"
+
+
+class BookGenre(enum.Enum):
+    # Ficción
+    fiction = "fiction"
+    science_fiction = "science_fiction"
+    fantasy = "fantasy"
+    mystery = "mystery"
+    thriller = "thriller"
+    horror = "horror"
+    romance = "romance"
+    historical_fiction = "historical_fiction"
+    literary_fiction = "literary_fiction"
+    adventure = "adventure"
+    western = "western"
+    dystopian = "dystopian"
+    magical_realism = "magical_realism"
+    
+    # No ficción
+    non_fiction = "non_fiction"
+    biography = "biography"
+    autobiography = "autobiography"
+    history = "history"
+    philosophy = "philosophy"
+    psychology = "psychology"
+    science = "science"
+    technology = "technology"
+    business = "business"
+    self_help = "self_help"
+    travel = "travel"
+    cooking = "cooking"
+    health = "health"
+    religion = "religion"
+    politics = "politics"
+    economics = "economics"
+    education = "education"
+    
+    # Otros
+    children = "children"
+    young_adult = "young_adult"
+    reference = "reference"
+    academic = "academic"
+    other = "other"
+
+
 class Book(Base):
     __tablename__ = "books"
 
@@ -28,6 +84,10 @@ class Book(Base):
     isbn = Column(String(20), nullable=True, unique=False, index=True)
     cover_url = Column(String(255), nullable=True)
     description = Column(Text, nullable=True)
+    
+    # Clasificación
+    book_type = Column(Enum(BookType, name="book_type"), nullable=True, index=True)
+    genre = Column(Enum(BookGenre, name="book_genre"), nullable=True, index=True)
 
     # Relaciones
     owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)

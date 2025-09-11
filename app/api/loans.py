@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+import logging
 from sqlalchemy.orm import Session
 from datetime import datetime
 from uuid import UUID
@@ -9,10 +10,12 @@ from app.models.loan import Loan as LoanModel, LoanStatus
 
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/loan", status_code=status.HTTP_200_OK)
 def loan_book(book_id: UUID, borrower_id: UUID, db: Session = Depends(get_current_db)):
+    logger.info("loan_book book_id=%s borrower_id=%s", str(book_id), str(borrower_id))
     book = db.query(BookModel).filter(BookModel.id == book_id, BookModel.is_archived == False).first()
     if not book:
         raise HTTPException(status_code=404, detail="Libro no encontrado")
@@ -34,11 +37,13 @@ def loan_book(book_id: UUID, borrower_id: UUID, db: Session = Depends(get_curren
     book.current_borrower_id = borrower_id
 
     db.commit()
+    logger.info("loan_book success book_id=%s loan_id=%s", str(book.id), str(loan.id))
     return {"message": "Libro prestado", "book_id": str(book.id), "loan_id": str(loan.id)}
 
 
 @router.post("/return", status_code=status.HTTP_200_OK)
 def return_book(book_id: UUID, db: Session = Depends(get_current_db)):
+    logger.info("return_book book_id=%s", str(book_id))
     book = db.query(BookModel).filter(BookModel.id == book_id).first()
     if not book:
         raise HTTPException(status_code=404, detail="Libro no encontrado")
@@ -56,6 +61,7 @@ def return_book(book_id: UUID, db: Session = Depends(get_current_db)):
     book.current_borrower_id = None
 
     db.commit()
+    logger.info("return_book success book_id=%s", str(book.id))
     return {"message": "Libro devuelto", "book_id": str(book.id)}
 
 

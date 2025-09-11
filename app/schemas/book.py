@@ -6,6 +6,7 @@ from pydantic import ConfigDict
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
+from app.models.book import BookType, BookGenre
 
 
 class BookBase(BaseModel):
@@ -14,12 +15,15 @@ class BookBase(BaseModel):
     isbn: Optional[str] = Field(None, max_length=20)
     cover_url: Optional[str] = Field(None, max_length=255)
     description: Optional[str] = None
+    book_type: Optional[BookType] = None
+    genre: Optional[BookGenre] = None
     is_archived: Optional[bool] = False
     archived_reason: Optional[str] = Field(None, max_length=120)
 
 
 class BookCreate(BookBase):
-    owner_id: UUID
+    # owner_id será tomado del usuario autenticado en el endpoint
+    owner_id: Optional[UUID] = None
     current_borrower_id: Optional[UUID] = None
 
 
@@ -29,6 +33,8 @@ class BookUpdate(BaseModel):
     isbn: Optional[str] = Field(None, max_length=20)
     cover_url: Optional[str] = Field(None, max_length=255)
     description: Optional[str] = None
+    book_type: Optional[BookType] = None
+    genre: Optional[BookGenre] = None
     status: Optional[str] = Field(None, pattern="^(available|loaned|reserved)$")
     is_archived: Optional[bool] = None
     archived_reason: Optional[str] = Field(None, max_length=120)

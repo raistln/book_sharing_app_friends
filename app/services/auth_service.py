@@ -2,6 +2,7 @@
 Servicio de autenticación: registro, validación de credenciales y obtención de usuario actual
 """
 from typing import Optional
+import logging
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
@@ -20,6 +21,7 @@ from app.utils.security import (
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+logger = logging.getLogger(__name__)
 
 
 def register_user(*, db: Session, user_in: UserCreate) -> User:
@@ -27,6 +29,7 @@ def register_user(*, db: Session, user_in: UserCreate) -> User:
 
     Lanza 400 si username o email ya existen.
     """
+    logger.info("register_user username=%s email=%s", user_in.username, user_in.email)
     exists_username = db.query(User).filter(User.username == user_in.username).first()
     if exists_username:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="username ya está en uso")
@@ -51,6 +54,7 @@ def register_user(*, db: Session, user_in: UserCreate) -> User:
 
 def authenticate_user(*, db: Session, username: str, password: str) -> Optional[User]:
     """Devuelve el usuario si las credenciales son válidas, None en caso contrario."""
+    logger.info("authenticate_user username=%s", username)
     user: Optional[User] = db.query(User).filter(User.username == username).first()
     if not user:
         return None
@@ -72,6 +76,7 @@ async def get_current_user(
 ) -> User:
     """Dependencia para obtener el usuario autenticado a partir del JWT."""
     subject = decode_access_token(token)
+    logger.debug("get_current_user subject=%s", subject)
     if subject is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

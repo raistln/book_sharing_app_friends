@@ -29,6 +29,8 @@ def test_books_crud_and_loan_flow(live_server_url="http://localhost:8000"):
     # Usuario borrower
     borrower, borrower_token = _register_and_login(c)
 
+    owner_headers = {"Authorization": f"Bearer {owner_token}"}
+
     # Crear libro como owner
     book_payload = {
         "title": "El Quijote",
@@ -37,7 +39,7 @@ def test_books_crud_and_loan_flow(live_server_url="http://localhost:8000"):
         "description": "Clásico",
         "owner_id": owner["id"],
     }
-    r = c.post("/books/", json=book_payload)
+    r = c.post("/books/", json=book_payload, headers=owner_headers)
     assert r.status_code == 201, r.text
     book = r.json()
     assert book["owner_id"] == owner["id"]
