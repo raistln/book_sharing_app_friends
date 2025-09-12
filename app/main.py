@@ -13,6 +13,7 @@ from app.api.search import router as search_router
 from app.api.scan import router as scan_router
 from app.api.groups import router as groups_router
 from app.api.group_books import router as group_books_router
+from app.api.chat import router as chat_router
 
 # Configuración básica de logging
 logging.basicConfig(
@@ -50,6 +51,7 @@ app.include_router(search_router)
 app.include_router(scan_router)
 app.include_router(groups_router)
 app.include_router(group_books_router)
+app.include_router(chat_router)
 
 @app.get("/")
 async def root():
