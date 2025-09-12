@@ -38,6 +38,12 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+# Alias para compatibilidad con tests que usan /auth/token
+@router.post("/token")
+def token_alias(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    return login(form_data=form_data, db=db)
+
+
 @router.get("/me", response_model=UserSchema)
 async def read_me(current_user: User = Depends(get_current_user)):
     return current_user

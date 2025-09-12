@@ -1,5 +1,5 @@
 from httpx import Client
-from test_books_loans import _register_and_login
+from .test_books_loans import _register_and_login
 
 def test_search_isbn_with_and_without_hyphens(live_server_url="http://localhost:8000"):
     c = Client(base_url=live_server_url, timeout=10.0)

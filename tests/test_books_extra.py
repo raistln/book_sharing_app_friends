@@ -1,6 +1,6 @@
 import uuid
 from httpx import Client
-from test_books_loans import _register_and_login  # o desde donde esté definida
+from .test_books_loans import _register_and_login  # usar import relativo desde el paquete tests
 
 def _register_and_login(client: Client):
     username = f"bkx_{uuid.uuid4().hex[:8]}"

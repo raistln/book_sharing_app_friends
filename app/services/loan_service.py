@@ -1,0 +1,129 @@
+"""
+Servicio de préstamos (LoanService): solicitud, aprobación/rechazo,
+activación, devolución, fechas de vencimiento e historial.
+"""
+from __future__ import annotations
+
+from typing import List, Optional
+from datetime import datetime, timedelta
+import logging
+from sqlalchemy.orm import Session
+from sqlalchemy import and_
+
+from app.models.book import Book as BookModel, BookStatus
+from app.models.loan import Loan as LoanModel, LoanStatus
+
+
+logger = logging.getLogger(__name__)
+
+
+class LoanService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def request_loan(self, book_id, borrower_id) -> Optional[LoanModel]:
+        book = self.db.query(BookModel).filter(
+            and_(BookModel.id == book_id, BookModel.is_archived == False)
+        ).first()
+        if not book:
+            return None
+        # Si está prestado, no se puede solicitar
+        if book.status == BookStatus.loaned:
+            return None
+        # Evitar solicitudes duplicadas activas para mismo libro/borrower
+        existing = self.db.query(LoanModel).filter(
+            and_(
+                LoanModel.book_id == book_id,
+                LoanModel.borrower_id == borrower_id,
+                LoanModel.status.in_([LoanStatus.requested, LoanStatus.approved, LoanStatus.active]),
+            )
+        ).first()
+        if existing:
+            return None
+        loan = LoanModel(
+            book_id=book.id,
+            borrower_id=borrower_id,
+            lender_id=book.owner_id,
+            status=LoanStatus.requested,
+        )
+        self.db.add(loan)
+        self.db.commit()
+        self.db.refresh(loan)
+        logger.info("request_loan created loan_id=%s", str(loan.id))
+        return loan
+
+    def approve_loan(self, loan_id, lender_id, due_date: Optional[datetime] = None) -> Optional[LoanModel]:
+        loan = self.db.query(LoanModel).filter(LoanModel.id == loan_id).first()
+        if not loan:
+            return None
+        # Solo el dueño del libro (lender) puede aprobar
+        if loan.lender_id != lender_id:
+            return None
+        if loan.status not in [LoanStatus.requested, LoanStatus.approved]:
+            return None
+        # Marcar como active y actualizar libro
+        loan.status = LoanStatus.active
+        loan.approved_at = datetime.utcnow()
+        if due_date is not None:
+            loan.due_date = due_date
+        book = self.db.query(BookModel).filter(BookModel.id == loan.book_id).first()
+        if not book or book.status == BookStatus.loaned:
+            return None
+        book.status = BookStatus.loaned
+        book.current_borrower_id = loan.borrower_id
+        self.db.commit()
+        self.db.refresh(loan)
+        return loan
+
+    def reject_loan(self, loan_id, lender_id) -> bool:
+        loan = self.db.query(LoanModel).filter(LoanModel.id == loan_id).first()
+        if not loan:
+            return False
+        if loan.lender_id != lender_id:
+            return False
+        if loan.status not in [LoanStatus.requested, LoanStatus.approved]:
+            return False
+        # Rechazo: eliminamos la solicitud para no requerir nuevo estado en enum
+        self.db.delete(loan)
+        self.db.commit()
+        return True
+
+    def return_book(self, book_id) -> bool:
+        book = self.db.query(BookModel).filter(BookModel.id == book_id).first()
+        if not book:
+            return False
+        if book.status != BookStatus.loaned:
+            return False
+        loan = self.db.query(LoanModel).filter(
+            and_(LoanModel.book_id == book.id, LoanModel.status == LoanStatus.active)
+        ).first()
+        if loan:
+            loan.status = LoanStatus.returned
+            loan.returned_at = datetime.utcnow()
+        book.status = BookStatus.available
+        book.current_borrower_id = None
+        self.db.commit()
+        return True
+
+    def set_due_date(self, loan_id, lender_id, due_date: datetime) -> Optional[LoanModel]:
+        loan = self.db.query(LoanModel).filter(LoanModel.id == loan_id).first()
+        if not loan:
+            return None
+        if loan.lender_id != lender_id:
+            return None
+        if loan.status not in [LoanStatus.approved, LoanStatus.active]:
+            return None
+        loan.due_date = due_date
+        self.db.commit()
+        self.db.refresh(loan)
+        return loan
+
+    def get_user_loans(self, user_id) -> List[LoanModel]:
+        return self.db.query(LoanModel).filter(
+            (LoanModel.borrower_id == user_id) | (LoanModel.lender_id == user_id)
+        ).order_by(LoanModel.requested_at.desc()).all()
+
+    def get_book_history(self, book_id) -> List[LoanModel]:
+        return self.db.query(LoanModel).filter(LoanModel.book_id == book_id).order_by(LoanModel.requested_at.desc()).all()
+
+

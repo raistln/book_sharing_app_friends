@@ -45,7 +45,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(books_router, prefix="/books", tags=["books"])
-app.include_router(loans_router, prefix="/loans", tags=["loans"])
+app.include_router(loans_router)
 app.include_router(search_router)
 app.include_router(scan_router)
 app.include_router(groups_router)
@@ -67,9 +67,4 @@ async def health_check():
     return {"status": "healthy", "environment": settings.ENVIRONMENT}
 
 
-from app.api import books as books_router
-from app.api import loans as loans_router
-
-# Registro de routers
-app.include_router(books_router.router, prefix="/api/books", tags=["books"])
-app.include_router(loans_router.router, prefix="/api/loans", tags=["loans"])
+from app.api import books as books_router  # noqa: F401 (compat)
