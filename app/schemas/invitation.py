@@ -2,6 +2,7 @@
 Schemas Pydantic para invitaciones a grupos.
 """
 from pydantic import BaseModel, Field, EmailStr
+from pydantic import ConfigDict
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -32,9 +33,9 @@ class Invitation(InvitationBase):
     expires_at: datetime
     is_accepted: Optional[bool] = None
     responded_at: Optional[datetime] = None
+    code: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class InvitationWithGroup(Invitation):

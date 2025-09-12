@@ -220,12 +220,14 @@ class GroupService:
             return None
 
         # Crear la invitación (expira en 7 días)
+        import uuid as _uuid
         invitation = Invitation(
             group_id=group_id,
             email=invitation_data.email,
             message=invitation_data.message,
             invited_by=user_id,
-            expires_at=datetime.utcnow() + timedelta(days=7)
+            expires_at=datetime.utcnow() + timedelta(days=7),
+            code=_uuid.uuid4().hex
         )
         self.db.add(invitation)
         self.db.commit()

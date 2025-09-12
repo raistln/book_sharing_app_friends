@@ -23,6 +23,8 @@ class Invitation(Base):
     expires_at = Column(DateTime(timezone=True), nullable=False)
     is_accepted = Column(Boolean, nullable=True, default=None)
     responded_at = Column(DateTime(timezone=True), nullable=True)
+    # Código único para aceptar invitación vía enlace
+    code = Column(String(64), unique=True, index=True, nullable=False, default=lambda: uuid.uuid4().hex)
 
     # Relaciones
     group = relationship("Group", back_populates="invitations")

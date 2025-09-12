@@ -210,6 +210,26 @@ async def create_invitation(
             detail="No se pudo crear la invitación. Verifica que seas admin y no exista una invitación pendiente"
         )
     
+    # Asegurar que el campo code esté presente en la respuesta incluso si el modelo no lo hidrata aún
+    try:
+        from sqlalchemy import text as _text
+        code_row = db.execute(_text("SELECT code FROM invitations WHERE id = :id"), {"id": str(invitation.id)}).first()
+        code_val = code_row[0] if code_row else None
+        if code_val is not None:
+            return {
+                "id": invitation.id,
+                "group_id": invitation.group_id,
+                "email": invitation.email,
+                "message": invitation.message,
+                "invited_by": invitation.invited_by,
+                "created_at": invitation.created_at,
+                "expires_at": invitation.expires_at,
+                "is_accepted": invitation.is_accepted,
+                "responded_at": invitation.responded_at,
+                "code": code_val,
+            }
+    except Exception:
+        pass
     return invitation
 
 
@@ -228,8 +248,64 @@ async def get_group_invitations(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Grupo no encontrado o no tienes permisos de administrador"
         )
-    
-    return invitations
+    # Devolver también el code aunque el ORM no lo haya materializado aún
+    try:
+        from sqlalchemy import text as _text
+        ids = [str(inv.id) for inv in invitations]
+        if not ids:
+            return []
+        rows = db.execute(_text("SELECT id, code FROM invitations WHERE id = ANY(:ids)"), {"ids": ids}).fetchall()
+        id_to_code = {str(r[0]): r[1] for r in rows}
+        enriched = []
+        for inv in invitations:
+            code_val = id_to_code.get(str(inv.id))
+            enriched.append({
+                "id": inv.id,
+                "group_id": inv.group_id,
+                "email": inv.email,
+                "message": inv.message,
+                "invited_by": inv.invited_by,
+                "created_at": inv.created_at,
+                "expires_at": inv.expires_at,
+                "is_accepted": inv.is_accepted,
+                "responded_at": inv.responded_at,
+                "code": code_val,
+            })
+        return enriched
+    except Exception:
+        return invitations
+
+
+@router.get("/invitations/by-code/{code}", response_model=Invitation)
+async def get_invitation_by_code(
+    code: str,
+    db: Session = Depends(get_db)
+):
+    """Obtener una invitación por código (sin requerir auth para previsualizar)."""
+    from app.models.invitation import Invitation as InvitationModel
+    inv = db.query(InvitationModel).filter(InvitationModel.code == code).first()
+    if not inv:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitación no encontrada")
+    return inv
+
+
+@router.post("/invitations/accept/{code}", response_model=GroupMember)
+async def accept_invitation_by_code(
+    code: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Aceptar invitación mediante código."""
+    group_service = GroupService(db)
+    from app.models.invitation import Invitation as InvitationModel
+    inv = db.query(InvitationModel).filter(InvitationModel.code == code).first()
+    if not inv:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitación no encontrada")
+    # Reutilizar respond_to_invitation
+    member = group_service.respond_to_invitation(inv.id, current_user.email, True)
+    if not member:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No se pudo aceptar la invitación")
+    return member
 
 
 @router.get("/invitations/pending", response_model=List[Invitation])
