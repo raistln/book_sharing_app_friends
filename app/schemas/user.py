@@ -1,10 +1,11 @@
 """
 Schemas Pydantic para Usuario
 """
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, validator
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
+import re
 
 
 class UserBase(BaseModel):
@@ -14,11 +15,53 @@ class UserBase(BaseModel):
     full_name: Optional[str] = Field(None, max_length=100)
     bio: Optional[str] = None
     avatar_url: Optional[str] = None
+    
+    @validator('username')
+    def validate_username(cls, v):
+        """Validate username to prevent SQL injection and ensure safe characters"""
+        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
+            raise ValueError('Username can only contain letters, numbers, underscores, and hyphens')
+        
+        # Check for SQL injection patterns
+        sql_patterns = [
+            r"'.*'",  # Single quotes
+            r'".*"',  # Double quotes
+            r'--',    # SQL comments
+            r'/\*.*\*/',  # Multi-line comments
+            r'\bDROP\b', r'\bDELETE\b', r'\bUNION\b', r'\bSELECT\b',
+            r'\bINSERT\b', r'\bUPDATE\b', r'\bCREATE\b', r'\bALTER\b'
+        ]
+        
+        for pattern in sql_patterns:
+            if re.search(pattern, v, re.IGNORECASE):
+                raise ValueError('Username contains invalid characters')
+        
+        return v
 
 
 class UserCreate(UserBase):
     """Schema para crear usuario"""
     password: str = Field(..., min_length=8, max_length=100)
+    
+    @validator('password')
+    def validate_password_strength(cls, v):
+        """Validate password strength"""
+        if len(v) < 8:
+            raise ValueError('Password must be at least 8 characters long')
+        
+        # Check for at least one uppercase letter
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        
+        # Check for at least one lowercase letter
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        
+        # Check for at least one digit
+        if not re.search(r'\d', v):
+            raise ValueError('Password must contain at least one digit')
+        
+        return v
 
 
 class UserUpdate(BaseModel):

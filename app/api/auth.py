@@ -31,9 +31,26 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     logger.info("Login attempt username=%s", form_data.username)
+    
+    # Validate username format to prevent SQL injection
+    import re
+    if not re.match(r'^[a-zA-Z0-9_-]+$', form_data.username):
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid username format")
+    
+    # Check for SQL injection patterns
+    sql_patterns = [
+        r"'.*'", r'".*"', r'--', r'/\*.*\*/',
+        r'\bDROP\b', r'\bDELETE\b', r'\bUNION\b', r'\bSELECT\b',
+        r'\bINSERT\b', r'\bUPDATE\b', r'\bCREATE\b', r'\bALTER\b'
+    ]
+    
+    for pattern in sql_patterns:
+        if re.search(pattern, form_data.username, re.IGNORECASE):
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid username format")
+    
     user = authenticate_user(db=db, username=form_data.username, password=form_data.password)
     if not user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Credenciales inválidas")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas")
     access_token = create_user_access_token(user)
     return {"access_token": access_token, "token_type": "bearer"}
 

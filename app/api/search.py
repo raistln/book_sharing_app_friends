@@ -20,8 +20,13 @@ def search_books(q: str = Query("", description="Título o ISBN"), limit: int = 
     cleaned = q.replace("-", "").replace(" ", "")
     is_isbn = cleaned.isdigit() and len(cleaned) in {10, 13}
     logger.info("search_books q=%s is_isbn=%s limit=%s", q, is_isbn, limit)
-    if is_isbn:
-        return service.search(isbn=cleaned, limit=limit)
-    return service.search(title=q, limit=limit)
+    try:
+        if is_isbn:
+            return service.search(isbn=cleaned, limit=limit)
+        return service.search(title=q, limit=limit)
+    except Exception as e:
+        logger.error("search_books error: %s", e)
+        from fastapi import HTTPException
+        raise HTTPException(status_code=500, detail="Search service error")
 
 

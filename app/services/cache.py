@@ -16,16 +16,20 @@ class RedisCache:
         self.client = redis.Redis.from_url(self.url, decode_responses=True)
 
     def get_json(self, key: str):
-        val = self.client.get(key)
-        if val is None:
-            return None
         try:
+            val = self.client.get(key)
+            if val is None:
+                return None
             return json.loads(val)
         except Exception:
             return None
 
     def set_json(self, key: str, value, ttl_seconds: Optional[int] = None):
-        ttl = ttl_seconds or self.ttl
-        self.client.setex(key, ttl, json.dumps(value, ensure_ascii=False))
+        try:
+            ttl = ttl_seconds or self.ttl
+            self.client.setex(key, ttl, json.dumps(value, ensure_ascii=False))
+        except Exception:
+            # Fail silently for cache errors
+            pass
 
 

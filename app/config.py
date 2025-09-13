@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://postgres:password@localhost:5432/book_sharing"
     
     # Configuración de seguridad
-    SECRET_KEY: str = "your-secret-key-here-change-this-in-production"
+    SECRET_KEY: str = "your-development-secret-key-change-this"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     

@@ -1,17 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-import logging
-from sqlalchemy.orm import Session
-from typing import List
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import and_
 from uuid import UUID
+from typing import List, Optional
+import logging
 
-from app.dependencies import get_current_db, require_user, optional_current_user
-from typing import Optional
-from app.models.user import User
+from app.dependencies import get_current_db, optional_current_user
 from app.models.book import Book as BookModel, BookStatus, BookType, BookGenre
+from app.models.user import User
 from app.schemas.book import Book as BookSchema, BookCreate, BookUpdate
+from app.services.auth_service import get_current_user
 
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/", response_model=BookSchema, status_code=status.HTTP_201_CREATED)
@@ -22,7 +24,7 @@ async def create_book(
     current_user: Optional[User] = Depends(optional_current_user),
 ):
     try:
-        logging.info("create_book title=%s owner_id=%s auth=%s", payload.title, getattr(current_user, 'id', None), bool(current_user))
+        logger.info("create_book title=%s owner_id=%s auth=%s", payload.title, getattr(current_user, 'id', None), bool(current_user))
         # Normalizar enums si vienen como string
         bt = None
         if payload.book_type is not None:
@@ -68,53 +70,124 @@ async def create_book(
         db.add(db_book)
         db.commit()
         db.refresh(db_book)
+        logger.info("Book created successfully: id=%s title=%s owner_id=%s", db_book.id, db_book.title, db_book.owner_id)
         return db_book
     except Exception as exc:
-        logging.exception("Error creando libro")
+        logger.exception("Error creating book: title=%s owner_id=%s", payload.title, owner_id)
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"Error al crear libro: {exc}")
 
 
 @router.get("/", response_model=List[BookSchema])
 def list_books(db: Session = Depends(get_current_db)):
-    return db.query(BookModel).filter(BookModel.is_archived == False).all()
+    """List all available books with optimized query to prevent N+1 problems."""
+    logger.info("Listing all available books")
+    
+    # Optimized query with eager loading of related data
+    books = db.query(BookModel).options(
+        joinedload(BookModel.owner),
+        joinedload(BookModel.current_borrower)
+    ).filter(BookModel.is_archived == False).all()
+    
+    logger.info("Retrieved %d books", len(books))
+    return books
 
 
 @router.get("/{book_id}", response_model=BookSchema)
 def get_book(book_id: UUID, db: Session = Depends(get_current_db)):
-    book = db.query(BookModel).filter(BookModel.id == book_id, BookModel.is_archived == False).first()
+    """Get a specific book by ID with optimized query."""
+    logger.info("Getting book: id=%s", book_id)
+    
+    # Optimized query with eager loading
+    book = db.query(BookModel).options(
+        joinedload(BookModel.owner),
+        joinedload(BookModel.current_borrower)
+    ).filter(
+        and_(BookModel.id == book_id, BookModel.is_archived == False)
+    ).first()
+    
     if not book:
+        logger.warning("Book not found: id=%s", book_id)
         raise HTTPException(status_code=404, detail="Libro no encontrado")
+    
+    logger.info("Book retrieved successfully: id=%s title=%s", book.id, book.title)
     return book
 
 
 @router.put("/{book_id}", response_model=BookSchema)
-def update_book(book_id: UUID, payload: BookUpdate, db: Session = Depends(get_current_db)):
-    book = db.query(BookModel).filter(BookModel.id == book_id, BookModel.is_archived == False).first()
+async def update_book(book_id: UUID, payload: BookUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_current_db)):
+    """Update a book with comprehensive logging and validation."""
+    logger.info("Updating book: id=%s user=%s", book_id, current_user.id)
+    
+    book = db.query(BookModel).filter(
+        and_(BookModel.id == book_id, BookModel.is_archived == False)
+    ).first()
+    
     if not book:
+        logger.warning("Book not found for update: id=%s", book_id)
         raise HTTPException(status_code=404, detail="Libro no encontrado")
+    
+    # Check ownership
+    if book.owner_id != current_user.id:
+        logger.warning("Unauthorized book update attempt: book_id=%s user=%s owner=%s", book_id, current_user.id, book.owner_id)
+        raise HTTPException(status_code=403, detail="No tienes permisos para modificar este libro")
 
     update_data = payload.dict(exclude_unset=True)
+    logger.info("Update data for book %s: %s", book_id, update_data)
+    
     # Validación simple de status
     status_value = update_data.get("status")
     if status_value is not None and status_value not in {e.name for e in BookStatus}:
+        logger.error("Invalid status for book %s: %s", book_id, status_value)
         raise HTTPException(status_code=400, detail="Estado inválido")
 
-    for field, value in update_data.items():
-        setattr(book, field, value)
+    try:
+        for field, value in update_data.items():
+            old_value = getattr(book, field, None)
+            setattr(book, field, value)
+            logger.debug("Updated field %s: %s -> %s", field, old_value, value)
 
-    db.commit()
-    db.refresh(book)
-    return book
+        db.commit()
+        db.refresh(book)
+        logger.info("Book updated successfully: id=%s", book_id)
+        return book
+    except Exception as exc:
+        logger.exception("Error updating book: id=%s", book_id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al actualizar libro: {exc}")
 
 
 @router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_book(book_id: UUID, db: Session = Depends(get_current_db)):
-    book = db.query(BookModel).filter(BookModel.id == book_id, BookModel.is_archived == False).first()
+async def delete_book(book_id: UUID, current_user: User = Depends(get_current_user), db: Session = Depends(get_current_db)):
+    """Soft delete a book with comprehensive logging."""
+    logger.info("Deleting book (soft delete): id=%s user=%s", book_id, current_user.id)
+    
+    book = db.query(BookModel).filter(
+        and_(BookModel.id == book_id, BookModel.is_archived == False)
+    ).first()
+    
     if not book:
+        logger.warning("Book not found for deletion: id=%s", book_id)
         raise HTTPException(status_code=404, detail="Libro no encontrado")
 
-    book.is_archived = True
-    db.commit()
-    return None
+    # Check ownership
+    if book.owner_id != current_user.id:
+        logger.warning("Unauthorized book deletion attempt: book_id=%s user=%s owner=%s", book_id, current_user.id, book.owner_id)
+        raise HTTPException(status_code=403, detail="No tienes permisos para eliminar este libro")
+
+    # Check if book is currently loaned
+    if book.status == BookStatus.loaned:
+        logger.warning("Attempted to delete loaned book: id=%s", book_id)
+        raise HTTPException(status_code=400, detail="No se puede eliminar un libro prestado")
+
+    try:
+        book.is_archived = True
+        db.commit()
+        logger.info("Book soft deleted successfully: id=%s title=%s", book_id, book.title)
+        return None
+    except Exception as exc:
+        logger.exception("Error deleting book: id=%s", book_id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al eliminar libro: {exc}")
 
 

@@ -55,7 +55,7 @@ def test_books_crud_and_loan_flow(live_server_url="http://localhost:8000"):
         "/loans/loan",
         params={"book_id": book["id"], "borrower_id": borrower["id"]},
     )
-    assert r.status_code == 200, r.text
+    assert r.status_code == 201, r.text
 
     # Verificar estado del libro prestado
     r = c.get(f"/books/{book['id']}")

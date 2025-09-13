@@ -34,7 +34,7 @@ def test_chat_send_and_receive(live_server_url="http://localhost:8000"):
     book = _create_book(c, owner_token, "ChatBook", "Autor")
 
     r = _loan_book(c, book["id"], borrower["id"])  # préstamo inmediato
-    assert r.status_code == 200
+    assert r.status_code == 201
     loan_id = r.json()["loan_id"]
 
     # borrower envía mensaje
@@ -59,7 +59,7 @@ def test_chat_access_control(live_server_url="http://localhost:8000"):
 
     book = _create_book(c, owner_token, "ChatBook2", "Autor")
     r = _loan_book(c, book["id"], borrower["id"])  # préstamo
-    assert r.status_code == 200
+    assert r.status_code == 201
     loan_id = r.json()["loan_id"]
 
     # Intruso intenta enviar/leer

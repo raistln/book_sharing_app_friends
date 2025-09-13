@@ -30,11 +30,15 @@ class GoogleBooksClient:
         if self.api_key:
             params["key"] = self.api_key
         self.logger.info("googlebooks _search q=%s limit=%s", q, limit)
-        r = self.http.get(url, params=params)
-        r.raise_for_status()
-        data = r.json()
-        items = data.get("items", [])
-        return [self._normalize_item(it) for it in items]
+        try:
+            r = self.http.get(url, params=params)
+            r.raise_for_status()
+            data = r.json()
+            items = data.get("items", [])
+            return [self._normalize_item(it) for it in items]
+        except Exception as e:
+            self.logger.error("googlebooks _search error: %s", e)
+            return []
 
     def _normalize_item(self, it: Dict[str, Any]) -> Dict[str, Any]:
         info = it.get("volumeInfo", {})

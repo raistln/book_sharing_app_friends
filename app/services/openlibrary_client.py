@@ -19,22 +19,30 @@ class OpenLibraryClient:
         url = f"{self.base_url}/search.json"
         params = {"q": title, "limit": limit}
         self.logger.info("openlibrary search_by_title title=%s limit=%s", title, limit)
-        r = self.http.get(url, params=params)
-        r.raise_for_status()
-        data = r.json()
-        docs = data.get("docs", [])
-        return [self._normalize_doc(d) for d in docs]
+        try:
+            r = self.http.get(url, params=params)
+            r.raise_for_status()
+            data = r.json()
+            docs = data.get("docs", [])
+            return [self._normalize_doc(d) for d in docs]
+        except Exception as e:
+            self.logger.error("openlibrary search_by_title error: %s", e)
+            return []
 
     def search_by_isbn(self, isbn: str) -> List[Dict[str, Any]]:
         # Usamos el endpoint de búsqueda por título con filtro isbn para consistencia
         url = f"{self.base_url}/search.json"
         params = {"q": f"isbn:{isbn}", "limit": 5}
         self.logger.info("openlibrary search_by_isbn isbn=%s", isbn)
-        r = self.http.get(url, params=params)
-        r.raise_for_status()
-        data = r.json()
-        docs = data.get("docs", [])
-        return [self._normalize_doc(d) for d in docs]
+        try:
+            r = self.http.get(url, params=params)
+            r.raise_for_status()
+            data = r.json()
+            docs = data.get("docs", [])
+            return [self._normalize_doc(d) for d in docs]
+        except Exception as e:
+            self.logger.error("openlibrary search_by_isbn error: %s", e)
+            return []
 
     def _normalize_doc(self, d: Dict[str, Any]) -> Dict[str, Any]:
         title = d.get("title")
