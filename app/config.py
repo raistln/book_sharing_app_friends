@@ -38,10 +38,31 @@ class Settings(BaseSettings):
     # CORS Configuration
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001"
     
-    # Rate Limiting
-    RATE_LIMIT_PER_MINUTE: int = 30
-    AUTH_RATE_LIMIT_PER_MINUTE: int = 5
-    UPLOAD_RATE_LIMIT_PER_MINUTE: int = 10
+    # Rate Limiting (requests per minute)
+    RATE_LIMIT_PER_MINUTE: int = Field(
+        default=30,
+        ge=1,
+        le=1000,
+        description="General API rate limit (requests per minute)"
+    )
+    AUTH_RATE_LIMIT_PER_MINUTE: int = Field(
+        default=5,
+        ge=1,
+        le=100,
+        description="Authentication endpoints rate limit (requests per minute)"
+    )
+    UPLOAD_RATE_LIMIT_PER_MINUTE: int = Field(
+        default=10,
+        ge=1,
+        le=50,
+        description="File upload endpoints rate limit (requests per minute)"
+    )
+    SEARCH_RATE_LIMIT_PER_MINUTE: int = Field(
+        default=30,
+        ge=5,
+        le=100,
+        description="Search endpoints rate limit (requests per minute)"
+    )
     
     # Logging
     LOG_LEVEL: str = "INFO"
