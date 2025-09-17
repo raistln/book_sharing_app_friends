@@ -67,12 +67,31 @@ def get_limiter():
         logger.warning(f"Failed to create rate limiter: {e}")
         return None
 
-# Initialize limiter
-limiter = get_limiter()
+# Initialize limiter as None, will be set by get_limiter()
+limiter = None
 
-# Force disable rate limiting if environment variables are set
-if is_rate_limiting_disabled():
-    limiter = None
+def get_or_create_limiter():
+    """Get or create the limiter instance, checking environment variables at call time"""
+    global limiter
+    if limiter is not None and not is_rate_limiting_disabled():
+        return limiter
+        
+    if is_rate_limiting_disabled():
+        logger.info("Rate limiting disabled via environment variables")
+        # Return a dummy limiter that won't limit anything
+        class DummyLimiter:
+            enabled = False
+            def __init__(self, *args, **kwargs):
+                pass
+            def __call__(self, *args, **kwargs):
+                return lambda f: f
+        
+        limiter = DummyLimiter()
+        return limiter
+    
+    # If we get here, rate limiting is enabled and we need to create a real limiter
+    limiter = get_limiter()
+    return limiter
 
 # Custom rate limit exceeded handler
 def rate_limit_handler(request: Request, exc):

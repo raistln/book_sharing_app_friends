@@ -8,7 +8,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 import logging
 from typing import Union
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger("book_sharing.error_handler")
 
@@ -30,7 +30,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
             "error": True,
             "status_code": exc.status_code,
             "message": exc.detail,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "path": str(request.url.path)
         }
     )
@@ -63,7 +63,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "status_code": 422,
             "message": "Error de validación en los datos enviados",
             "details": formatted_errors,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "path": str(request.url.path)
         }
     )
@@ -89,7 +89,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
             "error": True,
             "status_code": 500,
             "message": "Error interno del servidor. Por favor, intenta más tarde.",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "path": str(request.url.path)
         }
     )
@@ -111,7 +111,7 @@ async def starlette_exception_handler(request: Request, exc: StarletteHTTPExcept
             "error": True,
             "status_code": exc.status_code,
             "message": exc.detail,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "path": str(request.url.path)
         }
     )
@@ -160,7 +160,7 @@ async def business_logic_exception_handler(request: Request, exc: BusinessLogicE
             "error": True,
             "status_code": exc.status_code,
             "message": exc.message,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "path": str(request.url.path)
         }
     )
@@ -183,7 +183,7 @@ async def database_exception_handler(request: Request, exc: DatabaseError) -> JS
             "error": True,
             "status_code": 500,
             "message": "Error de base de datos. Por favor, intenta más tarde.",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "path": str(request.url.path)
         }
     )
@@ -208,7 +208,7 @@ async def auth_exception_handler(request: Request, exc: Union[AuthenticationErro
             "error": True,
             "status_code": status_code,
             "message": exc.message,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "path": str(request.url.path)
         }
     )

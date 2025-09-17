@@ -3,7 +3,7 @@ Comprehensive logging system for the Book Sharing App
 """
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from pathlib import Path
 import json
@@ -20,7 +20,7 @@ class JSONFormatter(logging.Formatter):
     
     def format(self, record):
         log_entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),

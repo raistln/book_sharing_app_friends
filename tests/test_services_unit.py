@@ -4,7 +4,7 @@ Estos tests verifican la lógica de negocio de forma aislada.
 """
 import pytest
 from unittest.mock import Mock, patch
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 from sqlalchemy.orm import Session
 
@@ -213,7 +213,7 @@ class TestLoanService:
         self.mock_db.commit = Mock()
         self.mock_db.refresh = Mock()
         
-        due_date = datetime.utcnow() + timedelta(days=14)
+        due_date = datetime.now(timezone.utc) + timedelta(days=14)
         result = self.loan_service.approve_loan(self.loan_id, self.lender_id, due_date)
         
         # Verificaciones
@@ -305,7 +305,7 @@ class TestLoanService:
         self.mock_db.commit = Mock()
         self.mock_db.refresh = Mock()
         
-        new_due_date = datetime.utcnow() + timedelta(days=30)
+        new_due_date = datetime.now(timezone.utc) + timedelta(days=30)
         result = self.loan_service.set_due_date(self.loan_id, self.lender_id, new_due_date)
         
         assert result == mock_loan

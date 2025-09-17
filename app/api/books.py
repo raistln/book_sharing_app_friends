@@ -133,7 +133,7 @@ async def update_book(book_id: UUID, payload: BookUpdate, current_user: User = D
         logger.warning("Unauthorized book update attempt: book_id=%s user=%s owner=%s", book_id, current_user.id, book.owner_id)
         raise HTTPException(status_code=403, detail="No tienes permisos para modificar este libro")
 
-    update_data = payload.dict(exclude_unset=True)
+    update_data = payload.model_dump(exclude_unset=True)
     logger.info("Update data for book %s: %s", book_id, update_data)
     
     # Validación simple de status

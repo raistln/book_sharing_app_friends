@@ -2,7 +2,7 @@
 Health check and system status endpoints
 """
 from fastapi import APIRouter, Depends
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.config import settings
@@ -30,7 +30,7 @@ async def health_check():
     """Basic health check endpoint"""
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": "1.0.0",
         "environment": getattr(settings, 'ENVIRONMENT', 'development')
     }
@@ -40,7 +40,7 @@ async def detailed_health_check(db: Session = Depends(get_db)):
     """Detailed health check with system information"""
     health_status = {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": "1.0.0",
         "environment": getattr(settings, 'ENVIRONMENT', 'development'),
         "checks": {}

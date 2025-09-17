@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 import logging
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 
 from app.models.group import Group, GroupMember, GroupRole
@@ -75,7 +75,7 @@ class GroupService:
         if group_data.description is not None:
             group.description = group_data.description
 
-        group.updated_at = datetime.utcnow()
+        group.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(group)
         logger.info("update_group success group_id=%s", str(group.id))
@@ -212,7 +212,7 @@ class GroupService:
                 Invitation.group_id == group_id,
                 Invitation.email == invitation_data.email,
                 Invitation.is_accepted.is_(None),
-                Invitation.expires_at > datetime.utcnow()
+                Invitation.expires_at > datetime.now(timezone.utc)
             )
         ).first()
 
@@ -226,7 +226,7 @@ class GroupService:
             email=invitation_data.email,
             message=invitation_data.message,
             invited_by=user_id,
-            expires_at=datetime.utcnow() + timedelta(days=7),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=7),
             code=_uuid.uuid4().hex
         )
         self.db.add(invitation)
@@ -250,7 +250,7 @@ class GroupService:
             and_(
                 Invitation.email == email,
                 Invitation.is_accepted.is_(None),
-                Invitation.expires_at > datetime.utcnow()
+                Invitation.expires_at > datetime.now(timezone.utc)
             )
         ).all()
 
@@ -262,7 +262,7 @@ class GroupService:
                 Invitation.id == invitation_id,
                 Invitation.email == email,
                 Invitation.is_accepted.is_(None),
-                Invitation.expires_at > datetime.utcnow()
+                Invitation.expires_at > datetime.now(timezone.utc)
             )
         ).first()
 
@@ -270,7 +270,7 @@ class GroupService:
             return None
 
         invitation.is_accepted = accept
-        invitation.responded_at = datetime.utcnow()
+        invitation.responded_at = datetime.now(timezone.utc)
 
         if accept:
             # Buscar el usuario por email

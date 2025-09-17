@@ -5,7 +5,7 @@ from fastapi import FastAPI
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.utils.rate_limiter import limiter, rate_limit_handler, SLOWAPI_AVAILABLE
+from app.utils.rate_limiter import get_or_create_limiter, rate_limit_handler, SLOWAPI_AVAILABLE
 try:
     from slowapi.errors import RateLimitExceeded
 except ImportError:
@@ -35,6 +35,7 @@ from app.api.search_enhanced import router as search_enhanced_router
 
 # Initialize comprehensive logging system
 setup_logging(log_level=settings.LOG_LEVEL, enable_file_logging=settings.ENABLE_FILE_LOGGING)
+logger = logging.getLogger(__name__)
 
 # Crear la aplicación FastAPI
 app = FastAPI(
@@ -115,11 +116,21 @@ app = FastAPI(
     ]
 )
 
-# Add rate limiter to app (if available and not in testing mode)
+# Add rate limiter to app (if available)
 import os
-if SLOWAPI_AVAILABLE and limiter and not (os.getenv("TESTING") == "true" or os.getenv("DISABLE_RATE_LIMITING") == "true"):
-    app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
+if SLOWAPI_AVAILABLE:
+    # Get or create limiter, checking environment variables at runtime
+    current_limiter = get_or_create_limiter()
+    
+    # Always set the limiter, even if it's a dummy one
+    app.state.limiter = current_limiter
+    
+    # Only add the exception handler if rate limiting is actually enabled
+    if hasattr(current_limiter, 'enabled') and current_limiter.enabled:
+        app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
+        logger.info("Rate limiting is enabled")
+    else:
+        logger.info("Rate limiting is disabled")
 
 # Configure comprehensive error handling
 app.add_exception_handler(HTTPException, http_exception_handler)

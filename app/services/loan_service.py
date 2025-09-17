@@ -5,7 +5,7 @@ activación, devolución, fechas de vencimiento e historial.
 from __future__ import annotations
 
 from typing import List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
@@ -63,7 +63,7 @@ class LoanService:
             return None
         # Marcar como active y actualizar libro
         loan.status = LoanStatus.active
-        loan.approved_at = datetime.utcnow()
+        loan.approved_at = datetime.now(timezone.utc)
         if due_date is not None:
             loan.due_date = due_date
         book = self.db.query(BookModel).filter(BookModel.id == loan.book_id).first()
@@ -99,7 +99,7 @@ class LoanService:
         ).first()
         if loan:
             loan.status = LoanStatus.returned
-            loan.returned_at = datetime.utcnow()
+            loan.returned_at = datetime.now(timezone.utc)
         book.status = BookStatus.available
         book.current_borrower_id = None
         self.db.commit()
