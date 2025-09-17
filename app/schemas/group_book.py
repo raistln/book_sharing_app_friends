@@ -1,7 +1,7 @@
 """
 Schemas Pydantic para libros en grupos.
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 from uuid import UUID
@@ -17,8 +17,7 @@ class GroupBook(Book):
     is_available: bool = Field(..., description="Si el libro está disponible para préstamo")
     current_borrower: Optional[UserBasic] = Field(None, description="Usuario que tiene prestado el libro")
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GroupBookSummary(BaseModel):
@@ -33,8 +32,7 @@ class GroupBookSummary(BaseModel):
     is_available: bool
     current_borrower: Optional[UserBasic] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GroupBookFilter(BaseModel):

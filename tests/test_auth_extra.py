@@ -1,20 +1,21 @@
 import uuid
-from httpx import Client
+from fastapi.testclient import TestClient
 
 from app.database import SessionLocal
 from app.models.user import User
 from app.utils.security import create_access_token
+from main import app
 
 
-def _register_user(client: Client, username: str, email: str, password: str = "SuperSegura123"):
+def _register_user(client: TestClient, username: str, email: str, password: str = "SuperSegura123"):
     return client.post(
         "/auth/register",
         json={"username": username, "password": password, "email": email},
     )
 
 
-def test_register_duplicate_username_and_email(live_server_url="http://localhost:8000"):
-    c = Client(base_url=live_server_url, timeout=10.0)
+def test_register_duplicate_username_and_email():
+    c = TestClient(app)
     base = f"dup_{uuid.uuid4().hex[:6]}"
     username = f"{base}_user"
     email = f"{base}@example.com"
@@ -31,15 +32,15 @@ def test_register_duplicate_username_and_email(live_server_url="http://localhost
     assert r3.status_code == 400
 
 
-def test_me_with_invalid_token_returns_401(live_server_url="http://localhost:8000"):
-    c = Client(base_url=live_server_url, timeout=10.0)
+def test_me_with_invalid_token_returns_401():
+    c = TestClient(app)
     invalid = "this.is.not.a.valid.token"
     r = c.get("/auth/me", headers={"Authorization": f"Bearer {invalid}"})
     assert r.status_code == 401
 
 
-def test_me_with_expired_token_returns_401(live_server_url="http://localhost:8000"):
-    c = Client(base_url=live_server_url, timeout=10.0)
+def test_me_with_expired_token_returns_401():
+    c = TestClient(app)
     # Registrar usuario
     username = f"exp_{uuid.uuid4().hex[:8]}"
     email = f"{username}@example.com"
@@ -53,25 +54,22 @@ def test_me_with_expired_token_returns_401(live_server_url="http://localhost:800
     assert r.status_code == 401
 
 
-def test_me_with_inactive_user_returns_400(live_server_url="http://localhost:8000"):
-    c = Client(base_url=live_server_url, timeout=10.0)
+def test_me_with_inactive_user_returns_400(db_session):
+    c = TestClient(app)
     username = f"inactive_{uuid.uuid4().hex[:8]}"
     email = f"{username}@example.com"
 
+    # Register user
     r = _register_user(c, username, email)
-    assert r.status_code == 201
-    data = r.json()
-
-    # Marcar usuario como inactivo directamente en la BD
-    db = SessionLocal()
-    try:
-        user = db.query(User).filter(User.id == uuid.UUID(data["id"])).first()
-        assert user is not None
-        user.is_active = False
-        db.add(user)
-        db.commit()
-    finally:
-        db.close()
+    assert r.status_code == 201, f"Failed to register user: {r.text}"
+    
+    # Find and deactivate user using the provided session
+    user = db_session.query(User).filter(User.username == username).first()
+    assert user is not None, f"User {username} not found in database"
+    user.is_active = False
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
 
     # Login y usar token
     r = c.post(
@@ -79,7 +77,7 @@ def test_me_with_inactive_user_returns_400(live_server_url="http://localhost:800
         data={"username": username, "password": "SuperSegura123"},
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
-    # authenticate_user devuelve None si inactivo, por lo que login falla con 400
-    assert r.status_code == 400
+    # authenticate_user devuelve None si inactivo, por lo que login falla con 401 (no 400)
+    assert r.status_code == 401, f"Expected 401 for inactive user, got {r.status_code}: {r.text}"
 
 

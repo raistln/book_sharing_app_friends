@@ -66,6 +66,7 @@ async def create_book(
             genre=g,
             owner_id=owner_id,
             current_borrower_id=payload.current_borrower_id,
+            is_archived=payload.is_archived if hasattr(payload, 'is_archived') else False,
         )
         db.add(db_book)
         db.commit()

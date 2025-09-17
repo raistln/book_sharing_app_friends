@@ -1,7 +1,7 @@
 """
 Schemas Pydantic para Usuario
 """
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -16,11 +16,13 @@ class UserBase(BaseModel):
     bio: Optional[str] = None
     avatar_url: Optional[str] = None
     
-    @validator('username')
+    @field_validator('username')
+    @classmethod
     def validate_username(cls, v):
         """Validate username to prevent SQL injection and ensure safe characters"""
-        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
-            raise ValueError('Username can only contain letters, numbers, underscores, and hyphens')
+        # Username must start with a letter
+        if not re.match(r'^[a-zA-Z][a-zA-Z0-9_-]*$', v):
+            raise ValueError('Username must start with a letter and can only contain letters, numbers, underscores, and hyphens')
         
         # Check for SQL injection patterns
         sql_patterns = [
@@ -43,7 +45,8 @@ class UserCreate(UserBase):
     """Schema para crear usuario"""
     password: str = Field(..., min_length=8, max_length=100)
     
-    @validator('password')
+    @field_validator('password')
+    @classmethod
     def validate_password_strength(cls, v):
         """Validate password strength"""
         if len(v) < 8:
@@ -82,8 +85,7 @@ class UserInDB(UserBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class User(UserInDB):
@@ -99,8 +101,7 @@ class UserBasic(BaseModel):
     full_name: Optional[str] = None
     avatar_url: Optional[str] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserLogin(BaseModel):

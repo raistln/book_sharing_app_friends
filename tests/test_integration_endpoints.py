@@ -83,7 +83,11 @@ class TestAuthEndpointsIntegration:
         user_data["email"] = f"different_{username}@example.com"
         response = client.post("/auth/register", json=user_data)
         assert response.status_code == 400
-        assert "username ya está en uso" in response.json()["detail"]
+        response_data = response.json()
+        assert "error" in response_data
+        assert response_data["error"] is True
+        assert "message" in response_data
+        assert "username ya está en uso" in response_data["message"]
     
     def test_login_invalid_credentials(self):
         """Test login con credenciales inválidas."""
@@ -94,13 +98,15 @@ class TestAuthEndpointsIntegration:
             "password": "wrong_password"
         }
         
-        response = client.post(
-            "/auth/login",
-            data=login_data,
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
-        )
+        response = client.post("/auth/login", data=login_data)
         assert response.status_code == 401
-        assert "Credenciales inválidas" in response.json()["detail"]
+        response_data = response.json()
+        assert "error" in response_data
+        assert response_data["error"] is True
+        assert "status_code" in response_data
+        assert response_data["status_code"] == 401
+        assert "message" in response_data
+        assert "Credenciales inválidas" in response_data["message"]
     
     def test_protected_endpoint_without_token(self):
         """Test acceso a endpoint protegido sin token."""

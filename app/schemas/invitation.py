@@ -42,8 +42,7 @@ class InvitationWithGroup(Invitation):
     """Schema para invitación con información del grupo."""
     group: "GroupSummary"
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class InvitationSummary(BaseModel):
@@ -55,8 +54,7 @@ class InvitationSummary(BaseModel):
     expires_at: datetime
     is_accepted: Optional[bool] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Importación circular resuelta

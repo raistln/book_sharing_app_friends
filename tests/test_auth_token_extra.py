@@ -1,28 +1,46 @@
 import uuid
-from httpx import Client
+from fastapi.testclient import TestClient
+from app.main import app
 
 
-def _register_and_login(client: Client):
+def _register_and_login(client: TestClient):
     username = f"tok_{uuid.uuid4().hex[:8]}"
     email = f"{username}@example.com"
     password = "SuperSegura123"
-    r = client.post("/auth/register", json={"username": username, "password": password, "email": email})
+    
+    # Register user
+    r = client.post(
+        "/auth/register", 
+        json={"username": username, "password": password, "email": email}
+    )
+    assert r.status_code == 201, f"Failed to register user: {r.text}"
     user = r.json()
-    r = client.post("/auth/login", data={"username": username, "password": password}, headers={"Content-Type": "application/x-www-form-urlencoded"})
+    
+    # Login to get token
+    r = client.post(
+        "/auth/login", 
+        data={"username": username, "password": password}, 
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    assert r.status_code == 200, f"Failed to login: {r.text}"
     token = r.json()["access_token"]
+    
     return user, token
 
 
-def test_bearer_missing_or_malformed_returns_401(live_server_url="http://localhost:8000"):
-    c = Client(base_url=live_server_url, timeout=10.0)
-    _user, token = _register_and_login(c)
-    # Sin header
+def test_bearer_missing_or_malformed_returns_401():
+    c = TestClient(app)
+    _user, _token = _register_and_login(c)
+    
+    # Test missing header
     r = c.get("/auth/me")
-    assert r.status_code == 401
-    # Header mal formado
+    assert r.status_code == 401, "Should require authentication"
+    
+    # Test malformed header (no token)
     r = c.get("/auth/me", headers={"Authorization": "Bearer"})
-    assert r.status_code == 401
-    # Token inválido
-    r = c.get("/auth/me", headers={"Authorization": "Bearer invalid"})
-    assert r.status_code == 401
+    assert r.status_code == 401, "Should reject malformed Bearer token"
+    
+    # Test invalid token
+    r = c.get("/auth/me", headers={"Authorization": "Bearer invalid_token_123"})
+    assert r.status_code == 401, "Should reject invalid token"
 

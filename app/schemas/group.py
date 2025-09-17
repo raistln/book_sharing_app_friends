@@ -1,7 +1,7 @@
 """
 Schemas Pydantic para grupos de usuarios.
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 from uuid import UUID
@@ -49,16 +49,14 @@ class GroupMember(GroupMemberBase):
     joined_at: datetime
     invited_by: Optional[UUID] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GroupMemberWithUser(GroupMember):
     """Schema para miembro con información del usuario."""
     user: "UserBasic"
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Group(GroupBase):
@@ -69,8 +67,7 @@ class Group(GroupBase):
     updated_at: Optional[datetime] = None
     members: List[GroupMemberWithUser] = []
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GroupWithMembers(Group):
@@ -88,8 +85,7 @@ class GroupSummary(BaseModel):
     created_at: datetime
     is_admin: bool = Field(..., description="Si el usuario actual es admin del grupo")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Importación circular resuelta

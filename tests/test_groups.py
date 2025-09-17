@@ -2,6 +2,7 @@
 Tests para el sistema de grupos e invitaciones.
 """
 import pytest
+import time
 from httpx import Client
 from uuid import uuid4
 import uuid
@@ -9,13 +10,19 @@ import uuid
 
 def _register_and_login(client: Client):
     """Helper para registrar y hacer login de un usuario."""
+    time.sleep(1)  # Add delay to prevent rate limiting
     username = f"user_{uuid4().hex[:8]}"
-    password = "testpassword123"
+    password = "Testpassword123"  # Must have uppercase, lowercase, and digit
     email = f"{username}@example.com"
     
     # Registrar
-    r = client.post("/auth/register", json={"username": username, "password": password, "email": email})
-    assert r.status_code == 201
+    r = client.post("/auth/register", json={
+        "username": username, 
+        "password": password, 
+        "email": email,
+        "full_name": "Test User"
+    })
+    assert r.status_code == 201, f"Registration failed: {r.text}"
     
     # Login
     r = client.post("/auth/login", data={"username": username, "password": password})
