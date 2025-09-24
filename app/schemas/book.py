@@ -57,3 +57,29 @@ class Book(BookInDB):
     pass
 
 
+class UserInResponse(BaseModel):
+    """Schema for user information in responses"""
+    id: UUID
+    username: str
+    email: str
+    full_name: Optional[str] = None
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BookResponse(BookInDB):
+    """
+    Schema for book responses, including related user information.
+    
+    This is used for API responses where we want to include
+    complete information about the book and its relationships.
+    """
+    owner: 'UserInResponse'
+    current_borrower: Optional['UserInResponse'] = None
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+# Update forward references for UserInResponse in BookResponse
+BookResponse.model_rebuild()
+
