@@ -49,44 +49,46 @@ logger = logging.getLogger("book_sharing.health")
 # Modelos de respuesta para la documentación
 class HealthCheckResponse(BaseModel):
     """Modelo de respuesta para el endpoint de salud básica"""
-    status: str = Field(..., example="healthy", description="Estado general del servicio")
-    timestamp: str = Field(..., example="2023-10-20T12:00:00+00:00", description="Marca de tiempo de la verificación")
-    version: str = Field(..., example="1.0.0", description="Versión de la API")
-    environment: str = Field(..., example="production", description="Entorno de ejecución")
+    status: str = Field(..., description="Estado general del servicio", json_schema_extra={"example": "healthy"})
+    timestamp: str = Field(..., description="Marca de tiempo de la verificación", json_schema_extra={"example": "2023-10-20T12:00:00+00:00"})
+    version: str = Field(..., description="Versión de la API", json_schema_extra={"example": "1.0.0"})
+    environment: str = Field(..., description="Entorno de ejecución", json_schema_extra={"example": "production"})
 
 class HealthCheckDetailResponse(HealthCheckResponse):
     """Modelo de respuesta extendido para el endpoint de salud detallada"""
     checks: Dict[str, Dict[str, Any]] = Field(
         ...,
-        example={
-            "database": {
-                "status": "healthy",
-                "message": "Database connection successful"
-            },
-            "redis": {
-                "status": "warning",
-                "message": "Redis connection failed: Connection refused"
-            },
-            "system": {
-                "status": "healthy",
-                "cpu_percent": 25.5,
-                "memory_percent": 45.2,
-                "disk_percent": 65.3,
-                "available_memory_gb": 7.8
+        description="Resultados detallados de las verificaciones de salud",
+        json_schema_extra={
+            "example": {
+                "database": {
+                    "status": "healthy",
+                    "message": "Database connection successful"
+                },
+                "redis": {
+                    "status": "warning",
+                    "message": "Redis connection failed: Connection refused"
+                },
+                "system": {
+                    "status": "healthy",
+                    "cpu_percent": 25.5,
+                    "memory_percent": 45.2,
+                    "disk_percent": 65.3,
+                    "available_memory_gb": 7.8
+                }
             }
-        },
-        description="Resultados detallados de las verificaciones de salud"
+        }
     )
 
 class ReadinessResponse(BaseModel):
     """Modelo de respuesta para el endpoint de readiness"""
-    status: str = Field(..., example="ready", description="Estado de preparación del servicio")
-    error: Optional[str] = Field(None, example="Database connection failed", description="Mensaje de error si el estado no es 'ready'")
+    status: str = Field(..., description="Estado de preparación del servicio", json_schema_extra={"example": "ready"})
+    error: Optional[str] = Field(None, description="Mensaje de error si el estado no es 'ready'", json_schema_extra={"example": "Database connection failed"})
 
 class LivenessResponse(BaseModel):
     """Modelo de respuesta para el endpoint de liveness"""
-    status: str = Field(..., example="alive", description="Estado de vida del servicio")
-    timestamp: str = Field(..., example="2023-10-20T12:00:00+00:00", description="Marca de tiempo de la verificación")
+    status: str = Field(..., description="Estado de vida del servicio", json_schema_extra={"example": "alive"})
+    timestamp: str = Field(..., description="Marca de tiempo de la verificación", json_schema_extra={"example": "2023-10-20T12:00:00+00:00"})
 
 @router.get(
     "/health",

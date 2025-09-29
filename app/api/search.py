@@ -97,7 +97,10 @@ async def search_books(
         min_length=0,  # Permitir cadena vacía
         max_length=255,
         description="Término de búsqueda (título o ISBN). Dejar vacío para devolver resultados sin filtrar.",
-        example="El nombre del viento"
+        examples={
+            "ejemplo1": {"summary": "Búsqueda por título", "value": "El nombre del viento"},
+            "ejemplo2": {"summary": "Búsqueda por ISBN", "value": "9788401352836"}
+        }
     ),
     limit: int = Query(
         5,

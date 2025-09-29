@@ -9,18 +9,18 @@ class ErrorDetail(BaseModel):
     """Detalle de un error de validación o de negocio."""
     loc: List[str] = Field(
         ...,
-        example=["body", "password"],
-        description="Ubicación del error en la solicitud"
+        description="Ubicación del error en la solicitud",
+        json_schema_extra={"example": ["body", "password"]}
     )
     msg: str = Field(
         ...,
-        example="La contraseña es demasiado corta",
-        description="Mensaje descriptivo del error"
+        description="Mensaje descriptivo del error",
+        json_schema_extra={"example": "La contraseña es demasiado corta"}
     )
     type: str = Field(
         ...,
-        example="value_error",
-        description="Tipo de error"
+        description="Tipo de error",
+        json_schema_extra={"example": "value_error"}
     )
 
 
@@ -28,8 +28,8 @@ class ErrorResponse(BaseModel):
     """Respuesta estándar para errores de la API."""
     detail: Any = Field(
         ...,
-        example="Error de autenticación",
-        description="Mensaje de error o lista de errores de validación"
+        description="Mensaje de error o lista de errores de validación",
+        json_schema_extra={"example": "Error de autenticación"}
     )
 
 
@@ -37,8 +37,8 @@ class HTTPError(BaseModel):
     """Modelo para documentar respuestas de error HTTP."""
     detail: str = Field(
         ...,
-        example="Error de autenticación",
-        description="Descripción del error"
+        description="Descripción del error",
+        json_schema_extra={"example": "Error de autenticación"}
     )
 
 

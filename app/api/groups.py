@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.database import get_db
 from app.services.auth_service import get_current_user
@@ -1130,7 +1130,7 @@ async def accept_invitation_by_code(
     invitation = db.query(InvitationModel).filter(
         InvitationModel.code == code,
         InvitationModel.is_accepted.is_(None),
-        InvitationModel.expires_at > datetime.utcnow()
+        InvitationModel.expires_at > datetime.now(timezone.utc)
     ).first()
     
     if not invitation:

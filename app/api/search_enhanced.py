@@ -34,66 +34,66 @@ logger = logging.getLogger("book_sharing.search")
 
 class BookSearchResult(BaseModel):
     """Modelo para los resultados de búsqueda de libros"""
-    id: str = Field(..., description="ID único del libro")
-    title: str = Field(..., description="Título del libro")
-    author: str = Field(..., description="Autor del libro")
-    description: Optional[str] = Field(None, description="Descripción del libro")
-    isbn: Optional[str] = Field(None, description="ISBN del libro")
-    genre: Optional[str] = Field(None, description="Género del libro")
-    book_type: str = Field(..., description="Tipo de libro (físico/digital)")
-    language: Optional[str] = Field(None, description="Idioma del libro")
-    status: str = Field(..., description="Estado del libro")
-    condition: Optional[str] = Field(None, description="Condición del libro")
-    rating: Optional[float] = Field(None, description="Calificación promedio")
-    created_at: str = Field(..., description="Fecha de creación")
+    id: str = Field(..., description="ID único del libro", json_schema_extra={"example": "550e8400-e29b-41d4-a716-446655440000"})
+    title: str = Field(..., description="Título del libro", json_schema_extra={"example": "El nombre del viento"})
+    author: str = Field(..., description="Autor del libro", json_schema_extra={"example": "Patrick Rothfuss"})
+    description: Optional[str] = Field(None, description="Descripción del libro", json_schema_extra={"example": "Una novela de fantasía épica"})
+    isbn: Optional[str] = Field(None, description="ISBN del libro", json_schema_extra={"example": "9788401337208"})
+    genre: Optional[str] = Field(None, description="Género del libro", json_schema_extra={"example": "Fantasía"})
+    book_type: str = Field(..., description="Tipo de libro (físico/digital)", json_schema_extra={"example": "physical"})
+    language: Optional[str] = Field(None, description="Idioma del libro", json_schema_extra={"example": "es"})
+    status: str = Field(..., description="Estado del libro", json_schema_extra={"example": "available"})
+    condition: Optional[str] = Field(None, description="Condición del libro", json_schema_extra={"example": "like_new"})
+    rating: Optional[float] = Field(None, description="Calificación promedio", json_schema_extra={"example": 4.5})
+    created_at: str = Field(..., description="Fecha de creación", json_schema_extra={"example": "2023-01-01T00:00:00"})
 
 class BookSearchResponse(BaseModel):
     """Modelo para la respuesta de búsqueda de libros"""
     items: List[BookSearchResult] = Field(..., description="Lista de libros encontrados")
-    total: int = Field(..., description="Número total de resultados")
-    page: int = Field(..., description="Página actual")
-    per_page: int = Field(..., description="Resultados por página")
-    total_pages: int = Field(..., description="Número total de páginas")
+    total: int = Field(..., description="Número total de resultados", json_schema_extra={"example": 42})
+    page: int = Field(..., description="Página actual", json_schema_extra={"example": 1})
+    per_page: int = Field(..., description="Resultados por página", json_schema_extra={"example": 20})
+    total_pages: int = Field(..., description="Número total de páginas", json_schema_extra={"example": 3})
 
 class UserSearchResult(BaseModel):
     """Modelo para los resultados de búsqueda de usuarios"""
-    id: str = Field(..., description="ID único del usuario")
-    username: str = Field(..., description="Nombre de usuario")
-    email: str = Field(..., description="Correo electrónico")
-    full_name: Optional[str] = Field(None, description="Nombre completo del usuario")
-    is_active: bool = Field(..., description="Indica si el usuario está activo")
-    created_at: str = Field(..., description="Fecha de creación de la cuenta")
+    id: str = Field(..., description="ID único del usuario", json_schema_extra={"example": "550e8400-e29b-41d4-a716-446655440001"})
+    username: str = Field(..., description="Nombre de usuario", json_schema_extra={"example": "usuario123"})
+    email: str = Field(..., description="Correo electrónico", json_schema_extra={"example": "usuario@ejemplo.com"})
+    full_name: Optional[str] = Field(None, description="Nombre completo del usuario", json_schema_extra={"example": "Juan Pérez"})
+    is_active: bool = Field(..., description="Indica si el usuario está activo", json_schema_extra={"example": True})
+    created_at: str = Field(..., description="Fecha de creación de la cuenta", json_schema_extra={"example": "2023-01-01T00:00:00"})
     
 class UserSearchResponse(BaseModel):
     """Modelo para la respuesta de búsqueda de usuarios"""
     items: List[UserSearchResult] = Field(..., description="Lista de usuarios encontrados")
-    total: int = Field(..., description="Número total de resultados")
-    page: int = Field(..., description="Página actual")
-    per_page: int = Field(..., description="Resultados por página")
-    total_pages: int = Field(..., description="Número total de páginas")
+    total: int = Field(..., description="Número total de resultados", json_schema_extra={"example": 15})
+    page: int = Field(..., description="Página actual", json_schema_extra={"example": 1})
+    per_page: int = Field(..., description="Resultados por página", json_schema_extra={"example": 10})
+    total_pages: int = Field(..., description="Número total de páginas", json_schema_extra={"example": 2})
 
 class GroupSearchResult(BaseModel):
     """Modelo para los resultados de búsqueda de grupos"""
-    id: str = Field(..., description="ID único del grupo")
-    name: str = Field(..., description="Nombre del grupo")
-    description: Optional[str] = Field(None, description="Descripción del grupo")
-    is_public: bool = Field(..., description="Indica si el grupo es público")
-    member_count: int = Field(..., description="Número de miembros del grupo")
-    created_at: str = Field(..., description="Fecha de creación del grupo")
+    id: str = Field(..., description="ID único del grupo", json_schema_extra={"example": "550e8400-e29b-41d4-a716-446655440002"})
+    name: str = Field(..., description="Nombre del grupo", json_schema_extra={"example": "Club de Lectura"})
+    description: Optional[str] = Field(None, description="Descripción del grupo", json_schema_extra={"example": "Grupo para amantes de la lectura"})
+    is_public: bool = Field(..., description="Indica si el grupo es público", json_schema_extra={"example": True})
+    member_count: int = Field(..., description="Número de miembros del grupo", json_schema_extra={"example": 25})
+    created_at: str = Field(..., description="Fecha de creación del grupo", json_schema_extra={"example": "2023-01-01T00:00:00"})
     
 class GroupSearchResponse(BaseModel):
     """Modelo para la respuesta de búsqueda de grupos"""
     items: List[GroupSearchResult] = Field(..., description="Lista de grupos encontrados")
-    total: int = Field(..., description="Número total de resultados")
-    page: int = Field(..., description="Página actual")
-    per_page: int = Field(..., description="Resultados por página")
-    total_pages: int = Field(..., description="Número total de páginas")
+    total: int = Field(..., description="Número total de resultados", json_schema_extra={"example": 8})
+    page: int = Field(..., description="Página actual", json_schema_extra={"example": 1})
+    per_page: int = Field(..., description="Resultados por página", json_schema_extra={"example": 10})
+    total_pages: int = Field(..., description="Número total de páginas", json_schema_extra={"example": 1})
 
 class SearchSuggestionsResponse(BaseModel):
     """Modelo para la respuesta de sugerencias de búsqueda"""
-    books: List[str] = Field(..., description="Sugerencias de títulos de libros")
-    authors: List[str] = Field(..., description="Sugerencias de nombres de autores")
-    genres: List[str] = Field(..., description="Sugerencias de géneros literarios")
+    books: List[str] = Field(..., description="Sugerencias de títulos de libros", json_schema_extra={"example": ["El nombre del viento", "El temor de un hombre sabio"]})
+    authors: List[str] = Field(..., description="Sugerencias de nombres de autores", json_schema_extra={"example": ["Patrick Rothfuss", "Brandon Sanderson"]})
+    genres: List[str] = Field(..., description="Sugerencias de géneros literarios", json_schema_extra={"example": ["Fantasía", "Ciencia Ficción"]})
 
 @router.get(
     "/books",
@@ -157,41 +157,41 @@ async def search_books(
     q: Optional[str] = Query(
         None, 
         description="Término de búsqueda (título, autor, descripción o ISBN). Opcional. Si se omite o está vacío, se devolverán todos los libros que coincidan con los filtros.",
-        example="El nombre del viento"
+        examples={"ejemplo1": {"summary": "Búsqueda por título", "value": "El nombre del viento"}}
     ),
     page: int = Query(1, 
                      ge=1, 
                      description="Número de página",
-                     example=1),
+                     examples={"ejemplo1": {"summary": "Primera página", "value": 1}}),
     per_page: int = Query(20, 
                          description="Número de resultados por página",
-                         example=20),
+                         examples={"ejemplo1": {"summary": "20 resultados por página", "value": 20}}),
     genre: Optional[str] = Query(None, 
                                description="Filtrar por género",
-                               example="Fantasía"),
+                               examples={"ejemplo1": {"summary": "Filtrar por género", "value": "Fantasía"}}),
     book_type: Optional[str] = Query(None, 
                                    description="Tipo de libro (physical/digital)",
-                                   example="physical"),
+                                   examples={"ejemplo1": {"summary": "Libros físicos", "value": "physical"}}),
     language: Optional[str] = Query(None, 
                                    description="Filtrar por idioma (código ISO 639-1)",
-                                   example="es"),
+                                   examples={"ejemplo1": {"summary": "Libros en español", "value": "es"}}),
     available_only: bool = Query(False, 
                                description="Mostrar solo libros disponibles",
-                               example=False),
+                               examples={"ejemplo1": {"summary": "Solo disponibles", "value": True}}),
     condition: Optional[str] = Query(None, 
                                    description="Filtrar por condición (new/like_new/good/fair/poor)",
-                                   example="like_new"),
+                                   examples={"ejemplo1": {"summary": "En excelente estado", "value": "like_new"}}),
     min_rating: Optional[float] = Query(None, 
                                       ge=0, 
                                       le=5, 
                                       description="Puntuación mínima (0-5)",
-                                      example=4.0),
+                                      examples={"ejemplo1": {"summary": "Mínimo 4 estrellas", "value": 4.0}}),
     sort_by: str = Query("relevance", 
                         description="Campo para ordenar los resultados (relevance/title/author/created_at/rating)",
-                        example="rating"),
+                        examples={"ejemplo1": {"summary": "Ordenar por calificación", "value": "rating"}}),
     sort_order: str = Query("desc", 
                            description="Orden de clasificación (asc/desc)",
-                           example="desc"),
+                           examples={"ejemplo1": {"summary": "Orden descendente", "value": "desc"}}),
     db: Session = Depends(get_db)
 ):
     """
@@ -344,20 +344,20 @@ async def search_users(
     q: str = Query(
         "", 
         description="Término de búsqueda (nombre de usuario o correo electrónico). Dejar vacío para obtener todos los resultados.",
-        example="usuario123"
+        examples={"ejemplo1": {"summary": "Buscar por nombre de usuario", "value": "usuario123"}}
     ),
     page: int = Query(
         1, 
         ge=1, 
         description="Número de página",
-        example=1
+        examples={"ejemplo1": {"summary": "Primera página", "value": 1}}
     ),
     per_page: int = Query(
         20, 
         ge=1, 
         le=100, 
         description="Número de resultados por página (máx. 100)",
-        example=20
+        examples={"ejemplo1": {"summary": "20 resultados por página", "value": 20}}
     ),
     db: Session = Depends(get_db)
 ):
@@ -463,25 +463,25 @@ async def search_groups(
         min_length=2, 
         max_length=100,
         description="Término de búsqueda (nombre o descripción del grupo)",
-        example="lectura"
+        examples={"ejemplo1": {"summary": "Búsqueda por nombre", "value": "lectura"}}
     ),
     page: int = Query(
         1, 
         ge=1, 
         description="Número de página",
-        example=1
+        examples={"ejemplo1": {"summary": "Primera página", "value": 1}}
     ),
     per_page: int = Query(
         20, 
         ge=1, 
         le=100, 
         description="Número de resultados por página (máx. 100)",
-        example=20
+        examples={"ejemplo1": {"summary": "20 resultados por página", "value": 20}}
     ),
     public_only: bool = Query(
         False, 
         description="Mostrar solo grupos públicos",
-        example=True
+        examples={"ejemplo1": {"summary": "Solo grupos públicos", "value": True}}
     ),
     db: Session = Depends(get_db)
 ):
@@ -591,12 +591,14 @@ async def get_search_suggestions(
         min_length=2, 
         max_length=100,
         description="Texto de búsqueda para generar sugerencias (mínimo 2 caracteres)",
-        example="fantas"
+        examples={"ejemplo1": {"summary": "Búsqueda parcial", "value": "fantas"}}
     ),
     limit: int = Query(
         10, 
-        description="Número máximo de sugerencias por categoría",
-        example=5
+        description="Número máximo de sugerencias por categoría (1-20)",
+        ge=1,
+        le=20,
+        examples={"ejemplo1": {"summary": "5 sugerencias por categoría", "value": 5}}
     ),
     db: Session = Depends(get_db)
 ):
