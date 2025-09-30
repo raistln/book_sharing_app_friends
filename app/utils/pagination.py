@@ -7,19 +7,22 @@ from sqlalchemy.orm import Query
 from sqlalchemy import func
 from math import ceil
 
+from pydantic import field_validator
+
 class PaginationParams(BaseModel):
     """Standard pagination parameters"""
     page: int = 1
     per_page: int = 20
     
-    def __post_init__(self):
-        # Ensure reasonable limits
-        if self.page < 1:
-            self.page = 1
-        if self.per_page < 1:
-            self.per_page = 1
-        if self.per_page > 100:  # Max 100 items per page
-            self.per_page = 100
+    @field_validator('page')
+    def validate_page(cls, v):
+        """Ensure page is at least 1"""
+        return max(1, v)
+    
+    @field_validator('per_page')
+    def validate_per_page(cls, v):
+        """Ensure per_page is between 1 and 100"""
+        return max(1, min(v, 100))
 
 class PaginatedResponse(BaseModel):
     """Standard paginated response format"""
