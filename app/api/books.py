@@ -8,41 +8,82 @@ import logging
 from app.dependencies import get_current_db, optional_current_user
 from app.models.book import Book as BookModel, BookStatus, BookType, BookGenre
 from app.models.user import User
-from app.schemas.book import Book as BookSchema, BookCreate, BookUpdate
+from app.models.review import Review as ReviewModel
+from app.schemas.book import Book as BookSchema, BookCreate, BookUpdate, BookResponse
 from app.services.auth_service import get_current_user
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-@router.get("/", response_model=List[BookSchema])
-def list_books(db: Session = Depends(get_current_db)):
-    """List all available books with optimized query to prevent N+1 problems."""
-    logger.info("Listing all available books")
+@router.get("/", response_model=List[BookResponse])
+def list_books(
+    include_reviews: bool = False,
+    db: Session = Depends(get_current_db)
+):
+    """List all available books with optional reviews and ratings."""
+    logger.info("Listing all available books, include_reviews=%s", include_reviews)
     
-    # Optimized query with eager loading of related data
-    books = db.query(BookModel).options(
+    # Base query with eager loading of related data
+    query = db.query(BookModel).options(
         joinedload(BookModel.owner),
         joinedload(BookModel.current_borrower)
-    ).filter(BookModel.is_archived == False).all()
+    ).filter(BookModel.is_archived == False)
+    
+    if include_reviews:
+        # Add eager loading for reviews if requested
+        query = query.options(joinedload(BookModel.reviews))
+    
+    books = query.all()
+    
+    # Calculate ratings if reviews are included
+    if include_reviews:
+        for book in books:
+            if book.reviews:
+                ratings = [review.rating for review in book.reviews]
+                book.average_rating = sum(ratings) / len(ratings) if ratings else None
+                book.total_reviews = len(ratings)
+            else:
+                book.average_rating = None
+                book.total_reviews = 0
     
     logger.info("Retrieved %d books", len(books))
     return books
 
-@router.get("/{book_id}", response_model=BookSchema)
-def get_book(book_id: UUID, db: Session = Depends(get_current_db)):
-    """Get a single book by ID with optimized query."""
-    logger.info("Getting book: id=%s", book_id)
+@router.get("/{book_id}", response_model=BookResponse)
+def get_book(
+    book_id: UUID,
+    include_reviews: bool = False,
+    db: Session = Depends(get_current_db)
+):
+    """Get a single book by ID with optional reviews and ratings."""
+    logger.info("Getting book: id=%s, include_reviews=%s", book_id, include_reviews)
     
-    book = db.query(BookModel).options(
+    # Base query with eager loading
+    query = db.query(BookModel).options(
         joinedload(BookModel.owner),
         joinedload(BookModel.current_borrower)
     ).filter(
         and_(BookModel.id == book_id, BookModel.is_archived == False)
-    ).first()
+    )
+    
+    if include_reviews:
+        # Add eager loading for reviews if requested
+        query = query.options(joinedload(BookModel.reviews))
+    
+    book = query.first()
     
     if not book:
         logger.warning("Book not found: id=%s", book_id)
         raise HTTPException(status_code=404, detail="Libro no encontrado")
+    
+    # Calculate ratings if reviews are included
+    if include_reviews and book.reviews:
+        ratings = [review.rating for review in book.reviews]
+        book.average_rating = sum(ratings) / len(ratings) if ratings else None
+        book.total_reviews = len(ratings)
+    elif include_reviews:
+        book.average_rating = None
+        book.total_reviews = 0
     
     return book
 

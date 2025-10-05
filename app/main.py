@@ -32,6 +32,7 @@ from app.api.chat import router as chat_router
 from app.api.health import router as health_router
 from app.api.metadata import router as metadata_router
 from app.api.search_enhanced import router as search_enhanced_router
+from app.api.reviews import router as reviews_router
 
 # Initialize comprehensive logging system
 setup_logging(log_level=settings.LOG_LEVEL, enable_file_logging=settings.ENABLE_FILE_LOGGING)
@@ -110,8 +111,8 @@ app = FastAPI(
             "description": "Sistema de mensajería entre usuarios"
         },
         {
-            "name": "invitations",
-            "description": "Sistema de invitaciones a grupos"
+            "name": "reviews",
+            "description": "Sistema de reseñas para libros"
         }
     ]
 )
@@ -155,6 +156,7 @@ app.add_middleware(
 # Routers
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(reviews_router, prefix="/reviews", tags=["reviews"])
 app.include_router(books_router, prefix="/books", tags=["books"])
 app.include_router(loans_router)
 app.include_router(search_router)

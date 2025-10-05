@@ -1,19 +1,19 @@
 from fastapi.testclient import TestClient
 from app.main import app
 
+def test_root_and_health(client):
+    """Test root endpoint and health check"""
+    response = client.get("/")
+    assert response.status_code == 200
+    data = response.json()
+    assert "message" in data
+    assert "Bienvenido" in data["message"]
+    assert "version" in data
+    assert data["version"] == "0.1.0"
 
-def test_root_and_health():
-    c = TestClient(app)
-    
-    # Test root endpoint
-    r = c.get("/")
-    assert r.status_code == 200, "Root endpoint should return 200"
-    assert "message" in r.json(), "Root response should contain 'message' field"
-    
-    # Test health check endpoint
-    r = c.get("/health")
-    assert r.status_code == 200, "Health check endpoint should return 200"
-    health_data = r.json()
-    assert "status" in health_data, "Health check should contain 'status' field"
+    # Test health endpoint
+    response = client.get("/health")
+    assert response.status_code == 200
+    health_data = response.json()
+    assert "status" in health_data
     assert health_data["status"] == "healthy", "Health status should be 'healthy'"
-

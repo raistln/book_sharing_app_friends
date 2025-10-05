@@ -76,6 +76,8 @@ class BookResponse(BookInDB):
     """
     owner: 'UserInResponse'
     current_borrower: Optional['UserInResponse'] = None
+    average_rating: Optional[float] = None  # Promedio de ratings de reseñas
+    total_reviews: Optional[int] = None     # Número total de reseñas
     
     model_config = ConfigDict(from_attributes=True)
 

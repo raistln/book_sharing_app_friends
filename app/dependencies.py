@@ -4,7 +4,7 @@ Dependencias comunes para FastAPI
 from fastapi import Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.services.auth_service import get_current_user
+from app.services.auth_service import get_current_user, oauth2_scheme
 from app.models.user import User
 
 # Aquí añadiremos más dependencias cuando implementemos autenticación
@@ -16,10 +16,9 @@ def get_current_db(db: Session = Depends(get_db)) -> Session:
     return db
 
 
-# Ejemplo de dependencia para autenticación (se implementará más adelante)
-async def require_user(user: User = Depends(get_current_user)) -> User:
+async def require_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> User:
     """Atajo para inyectar un usuario autenticado en endpoints."""
-    return user
+    return await get_current_user(db=db, token=token)
 
 
 async def optional_current_user(
