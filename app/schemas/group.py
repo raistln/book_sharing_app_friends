@@ -88,6 +88,14 @@ class GroupSummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class InvitationCreate(BaseModel):
+    """Schema para crear una invitación a un grupo."""
+    email: str = Field(..., description="Correo electrónico del usuario a invitar")
+    role: GroupRole = Field(default=GroupRole.MEMBER, description="Rol que tendrá el usuario en el grupo")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 # Importación circular resuelta
 from app.schemas.user import UserBasic
 GroupMemberWithUser.model_rebuild()
