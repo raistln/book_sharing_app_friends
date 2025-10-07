@@ -2,9 +2,10 @@
 Test configuration and fixtures
 """
 import os
+import logging
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 # Set environment variables before importing app to ensure rate limiting is disabled
@@ -70,7 +71,6 @@ def clean_db():
     # Clear all tables
     db = TestingSessionLocal()
     try:
-        from sqlalchemy import text
         # Get all table names
         tables = Base.metadata.tables.keys()
         for table in tables:
@@ -78,3 +78,22 @@ def clean_db():
         db.commit()
     finally:
         db.close()
+
+@pytest.fixture(autouse=True)
+def clean_logging():
+    """Aislar logging entre tests: limpiar handlers antes de cada test"""
+    # Limpiar handlers de loggers existentes
+    for name in list(logging.Logger.manager.loggerDict.keys()):
+        logger = logging.getLogger(name)
+        logger.handlers.clear()
+        logger.setLevel(logging.WARNING)  # Nivel por defecto para evitar ruido
+
+    # También limpiar el logger raíz
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    root_logger.setLevel(logging.WARNING)
+
+    yield
+
+    # Restaurar configuración básica después del test
+    logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
