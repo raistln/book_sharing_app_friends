@@ -77,7 +77,7 @@ class Settings(BaseSettings):
         """Convert CORS origins string to list"""
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
     
-    model_config = ConfigDict(env_file=".env", case_sensitive=True)
+    model_config = ConfigDict(env_file=".env.backend", case_sensitive=True)
 
 
 def _maybe_override_db_url_with_alembic(settings: Settings) -> Settings:

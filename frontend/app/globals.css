@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 47 40% 97%; /* Parchment */
+    --foreground: 25 45% 12%; /* Ink */
+    --card: 40 40% 98%; /* Cream */
+    --card-foreground: 25 45% 12%;
+    --popover: 40 40% 98%;
+    --popover-foreground: 25 45% 12%;
+    --primary: 25 65% 31%; /* Leather */
+    --primary-foreground: 40 40% 98%;
+    --secondary: 45 100% 50%; /* Gold */
+    --secondary-foreground: 25 45% 12%;
+    --muted: 40 20% 85%;
+    --muted-foreground: 25 20% 45%;
+    --accent: 45 100% 50%;
+    --accent-foreground: 25 45% 12%;
+    --destructive: 0 84% 27%;
+    --destructive-foreground: 40 40% 98%;
+    --border: 25 20% 80%;
+    --input: 25 20% 80%;
+    --ring: 45 100% 50%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 25 30% 8%;
+    --foreground: 40 40% 95%;
+    --card: 25 25% 12%;
+    --card-foreground: 40 40% 95%;
+    --popover: 25 25% 12%;
+    --popover-foreground: 40 40% 95%;
+    --primary: 45 80% 45%;
+    --primary-foreground: 25 30% 8%;
+    --secondary: 25 45% 20%;
+    --secondary-foreground: 40 40% 95%;
+    --muted: 25 20% 20%;
+    --muted-foreground: 40 20% 65%;
+    --accent: 45 80% 45%;
+    --accent-foreground: 25 30% 8%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 40 40% 95%;
+    --border: 25 20% 25%;
+    --input: 25 20% 25%;
+    --ring: 45 80% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Animaciones personalizadas */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Clases utilitarias personalizadas */
+.paper-bg {
+  background-image: 
+    linear-gradient(rgba(255, 248, 231, 0.95), rgba(255, 248, 231, 0.95));
+  background-blend-mode: overlay;
+}
+
+.magical-gradient {
+  background: linear-gradient(
+    135deg,
+    rgba(139, 69, 19, 0.1) 0%,
+    rgba(255, 215, 0, 0.1) 100%
+  );
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFF8E7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #8B4513;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #654321;
+}

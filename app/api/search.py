@@ -18,7 +18,7 @@ from app.models.user import User
 if os.getenv('TESTING') == 'true':
     current_user_dependency = lambda: None
 else:
-    current_user_dependency = Depends(get_current_user)
+    current_user_dependency = get_current_user  # Directamente la función, sin Depends
 
 router = APIRouter(
     prefix="/search",
