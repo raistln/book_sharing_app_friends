@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "app"}]
 
 [tool.poetry.dependencies]
-python = "^3.13"
+python = "^3.11"  # Cambiado de 3.13 a 3.11 para mejor compatibilidad
 fastapi = {extras = ["all"], version = "^0.104.1"}
 uvicorn = {extras = ["standard"], version = "^0.24.0"}
 sqlalchemy = "^2.0.23"
@@ -17,14 +17,14 @@ passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 python-multipart = "^0.0.6"
 httpx = "^0.25.2"
-pillow = "^10.1.0"
-pydantic = "^2.5.0"
+pillow = "^10.1.0"  # Versión estable con binarios precompilados
+pydantic-core = "^2.33.2"  # Versión compatible con Python 3.11
 pydantic-settings = "^2.0.0"
 python-dotenv = "^1.0.0"
 easyocr = "^1.7.2"
 redis = "^5.0.0"
 pyzbar = "^0.1.9"
-opencv-python = "^4.8.0"
+opencv-python = "^4.7.0"
 slowapi = "^0.1.9"
 psutil = "^5.9.0"
 numpy = "^1.26.0"

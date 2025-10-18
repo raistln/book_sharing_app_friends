@@ -1,25 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Book, Sparkles, Loader2 } from 'lucide-react';
+import { Book, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import type { LoginRequest } from '@/lib/types/api';
 
 export default function LoginPage() {
-  const { login, isLoggingIn } = useAuth();
-  const [formData, setFormData] = useState({
+  const { login, isLoggingIn, loginError } = useAuth();
+  const [formData, setFormData] = useState<LoginRequest>({
     username: '',
     password: '',
   });
 
+  const [error, setError] = useState<string>('');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    login(formData);
+    setError('');
+
+    const loginData: LoginRequest = {
+      username: formData.username,
+      password: formData.password
+    };
+
+    login(loginData);
   };
+
+  // Actualizar el estado de error cuando cambie el error del hook
+  React.useEffect(() => {
+    if (loginError) {
+      setError(loginError.response?.data?.detail || loginError.response?.data?.message || 'Error de autenticación');
+    }
+  }, [loginError]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light flex items-center justify-center p-4">
@@ -53,6 +70,14 @@ export default function LoginPage() {
               Enter your credentials to access your library
             </CardDescription>
           </CardHeader>
+          {error && (
+            <div className="px-6 pb-4">
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md text-red-800 text-sm">
+                <AlertCircle className="h-4 w-4" />
+                <span>{error}</span>
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -60,9 +85,12 @@ export default function LoginPage() {
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Enter your username"
+                  placeholder="Enter your username or email"
                   value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, username: e.target.value });
+                    if (error) setError('');
+                  }}
                   required
                   disabled={isLoggingIn}
                 />
@@ -74,7 +102,10 @@ export default function LoginPage() {
                   type="password"
                   placeholder="Enter your password"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, password: e.target.value });
+                    if (error) setError('');
+                  }}
                   required
                   disabled={isLoggingIn}
                 />
@@ -89,7 +120,7 @@ export default function LoginPage() {
                 {isLoggingIn ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
+                    Conectando...
                   </>
                 ) : (
                   <>

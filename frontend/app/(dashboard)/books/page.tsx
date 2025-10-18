@@ -5,11 +5,22 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { useMyBooks } from '@/lib/hooks/use-books';
+import { useMyBooks, useDeleteBook } from '@/lib/hooks/use-books';
 import { booksApi } from '@/lib/api/books';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Book, Plus, LogOut, Loader2, Edit, Trash2, Eye } from 'lucide-react';
 
 export default function BooksPage() {
@@ -17,6 +28,7 @@ export default function BooksPage() {
   const { user, isAuthenticated, logout, isLoadingUser } = useAuth();
   const [page, setPage] = useState(1);
   const { books, pagination, isLoading } = useMyBooks(page, 12);
+  const deleteBook = useDeleteBook();
 
   useEffect(() => {
     if (!isAuthenticated && !isLoadingUser) {
@@ -80,7 +92,7 @@ export default function BooksPage() {
                 </Link>
               </nav>
             </div>
-            <Button onClick={logout} variant="outline" className="border-storybook-gold text-storybook-cream hover:bg-storybook-leather-dark">
+            <Button onClick={logout} variant="outline" className="border-storybook-gold text-storybook-leather hover:text-storybook-cream hover:bg-storybook-leather-dark">
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
@@ -140,7 +152,7 @@ export default function BooksPage() {
                   {/* Book Cover */}
                   <div className="relative h-64 bg-storybook-parchment overflow-hidden">
                     <Image
-                      src={booksApi.getCoverUrl(book.cover_image)}
+                      src={book.cover_url || '/placeholder-book.jpg'}
                       alt={book.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -158,9 +170,9 @@ export default function BooksPage() {
 
                   {/* Book Info */}
                   <CardHeader>
-                    <CardTitle className="line-clamp-1">{book.title}</CardTitle>
+                    <CardTitle className="line-clamp-2 min-h-[3.5rem]">{book.title}</CardTitle>
                     <CardDescription className="line-clamp-1">
-                      by {book.author}
+                      by {book.author || 'Unknown Author'}
                     </CardDescription>
                   </CardHeader>
 
@@ -171,9 +183,9 @@ export default function BooksPage() {
                           {book.genre}
                         </Badge>
                       )}
-                      {book.book_type && (
+                      {book.condition && (
                         <Badge variant="secondary" className="text-xs">
-                          {book.book_type}
+                          {book.condition}
                         </Badge>
                       )}
                     </div>
@@ -191,6 +203,30 @@ export default function BooksPage() {
                           <Edit className="h-3 w-3" />
                         </Button>
                       </Link>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Eliminar libro?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              ¿Estás seguro de que quieres eliminar "{book.title}"? Esta acción no se puede deshacer.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteBook.mutate(book.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Eliminar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </CardContent>
                 </Card>

@@ -49,9 +49,10 @@ export const searchApi = {
   // Get available genres
   async getGenres(): Promise<string[]> {
     try {
-      const response = await apiClient.get<{ genres: string[] }>('/metadata/genres');
-      return response.data.genres || [];
+      const response = await apiClient.get<string[]>('/metadata/genres');
+      return response.data || [];
     } catch (error) {
+      console.error('Error fetching genres:', error);
       return [];
     }
   },
@@ -59,11 +60,12 @@ export const searchApi = {
   // Get available languages
   async getLanguages(): Promise<Array<{ code: string; name: string }>> {
     try {
-      const response = await apiClient.get<{ languages: Array<{ code: string; name: string }> }>(
+      const response = await apiClient.get<Array<{ code: string; name: string }>>(
         '/metadata/languages'
       );
-      return response.data.languages || [];
+      return response.data || [];
     } catch (error) {
+      console.error('Error fetching languages:', error);
       return [];
     }
   },
@@ -71,17 +73,17 @@ export const searchApi = {
   // Get book conditions
   async getConditions(): Promise<Array<{ value: string; label: string; description?: string }>> {
     try {
-      const response = await apiClient.get<{
-        conditions: Array<{ value: string; label: string; description?: string }>;
-      }>('/metadata/conditions');
-      return response.data.conditions || [];
+      const response = await apiClient.get<Array<{ value: string; label: string }>>(
+        '/metadata/book-conditions'
+      );
+      return response.data || [];
     } catch (error) {
+      console.error('Error fetching conditions:', error);
       return [
-        { value: 'new', label: 'New' },
-        { value: 'like_new', label: 'Like New' },
-        { value: 'good', label: 'Good' },
-        { value: 'fair', label: 'Fair' },
-        { value: 'poor', label: 'Poor' },
+        { value: 'excellent', label: 'Excelente' },
+        { value: 'good', label: 'Bueno' },
+        { value: 'fair', label: 'Regular' },
+        { value: 'poor', label: 'Malo' },
       ];
     }
   },

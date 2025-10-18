@@ -14,6 +14,21 @@ const nextConfig = {
         port: '8000',
         pathname: '/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'covers.openlibrary.org',
+        pathname: '/b/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'books.google.com',
+        pathname: '/books/content/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'books.google.com',
+        pathname: '/books/content/**',
+      },
     ],
   },
 };

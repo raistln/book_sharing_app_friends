@@ -13,18 +13,20 @@ export interface User {
 export interface Book {
   id: string;
   title: string;
-  author: string;
+  author?: string;
   description?: string;
   isbn?: string;
   genre?: string;
-  book_type: 'physical' | 'digital';
   language?: string;
   status: 'available' | 'borrowed' | 'reserved';
   condition?: 'new' | 'like_new' | 'good' | 'fair' | 'poor';
   owner_id: string;
   owner?: User;
   current_borrower?: User;
-  cover_image?: string;
+  cover_url?: string;
+  publisher?: string;
+  published_date?: string;
+  page_count?: string;
   created_at: string;
   updated_at: string;
   average_rating?: number;

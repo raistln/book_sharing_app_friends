@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cinzel, Merriweather, Dancing_Script } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/lib/providers/query-provider";
+import { AuthProvider } from "@/lib/providers/auth-provider";
 import { Toaster } from "@/components/ui/toaster";
 
 const cinzel = Cinzel({
@@ -39,10 +40,12 @@ export default function RootLayout({
       <body
         className={`${merriweather.variable} ${cinzel.variable} ${dancingScript.variable} font-serif antialiased`}
       >
-        <QueryProvider>
-          {children}
-          <Toaster />
-        </QueryProvider>
+        <AuthProvider>
+          <QueryProvider>
+            {children}
+            <Toaster />
+          </QueryProvider>
+        </AuthProvider>
       </body>
     </html>
   );

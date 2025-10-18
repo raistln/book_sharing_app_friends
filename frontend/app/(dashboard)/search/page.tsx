@@ -26,7 +26,6 @@ export default function SearchPage() {
     page: 1,
     per_page: 12,
     genre: '',
-    book_type: '' as '' | 'physical' | 'digital',
     language: '',
     available_only: false,
     condition: '',
@@ -62,7 +61,6 @@ export default function SearchPage() {
       page: 1,
       per_page: 12,
       genre: '',
-      book_type: '',
       language: '',
       available_only: false,
       condition: '',
@@ -123,7 +121,7 @@ export default function SearchPage() {
                 </Link>
               </nav>
             </div>
-            <Button onClick={logout} variant="outline" className="border-storybook-gold text-storybook-cream hover:bg-storybook-leather-dark">
+            <Button onClick={logout} variant="outline" className="border-storybook-gold text-storybook-leather hover:text-storybook-cream hover:bg-storybook-leather-dark">
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
@@ -191,14 +189,14 @@ export default function SearchPage() {
                 <div className="space-y-2">
                   <Label>Genre</Label>
                   <Select
-                    value={filters.genre}
-                    onValueChange={(value) => setFilters({ ...filters, genre: value, page: 1 })}
+                    value={filters.genre || 'all'}
+                    onValueChange={(value) => setFilters({ ...filters, genre: value === 'all' ? '' : value, page: 1 })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="All genres" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All genres</SelectItem>
+                      <SelectItem value="all">All genres</SelectItem>
                       {genres.map((genre) => (
                         <SelectItem key={genre} value={genre}>
                           {genre}
@@ -208,36 +206,18 @@ export default function SearchPage() {
                   </Select>
                 </div>
 
-                {/* Book Type */}
-                <div className="space-y-2">
-                  <Label>Book Type</Label>
-                  <Select
-                    value={filters.book_type}
-                    onValueChange={(value: any) => setFilters({ ...filters, book_type: value, page: 1 })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All types</SelectItem>
-                      <SelectItem value="physical">Physical</SelectItem>
-                      <SelectItem value="digital">Digital</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Language */}
                 <div className="space-y-2">
                   <Label>Language</Label>
                   <Select
-                    value={filters.language}
-                    onValueChange={(value) => setFilters({ ...filters, language: value, page: 1 })}
+                    value={filters.language || 'all'}
+                    onValueChange={(value) => setFilters({ ...filters, language: value === 'all' ? '' : value, page: 1 })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="All languages" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All languages</SelectItem>
+                      <SelectItem value="all">All languages</SelectItem>
                       {languages.map((lang) => (
                         <SelectItem key={lang.code} value={lang.name}>
                           {lang.name}
@@ -251,14 +231,14 @@ export default function SearchPage() {
                 <div className="space-y-2">
                   <Label>Condition</Label>
                   <Select
-                    value={filters.condition}
-                    onValueChange={(value) => setFilters({ ...filters, condition: value, page: 1 })}
+                    value={filters.condition || 'all'}
+                    onValueChange={(value) => setFilters({ ...filters, condition: value === 'all' ? '' : value, page: 1 })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Any condition" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any condition</SelectItem>
+                      <SelectItem value="all">Any condition</SelectItem>
                       {conditions.map((cond) => (
                         <SelectItem key={cond.value} value={cond.value}>
                           {cond.label}
@@ -362,7 +342,7 @@ export default function SearchPage() {
                   {/* Book Cover */}
                   <div className="relative h-64 bg-storybook-parchment overflow-hidden">
                     <Image
-                      src={booksApi.getCoverUrl(book.cover_image)}
+                      src={book.cover_url || '/placeholder-book.jpg'}
                       alt={book.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -380,9 +360,9 @@ export default function SearchPage() {
 
                   {/* Book Info */}
                   <CardHeader>
-                    <CardTitle className="line-clamp-1">{book.title}</CardTitle>
+                    <CardTitle className="line-clamp-2 min-h-[3.5rem]">{book.title}</CardTitle>
                     <CardDescription className="line-clamp-1">
-                      by {book.author}
+                      by {book.author || 'Unknown Author'}
                     </CardDescription>
                   </CardHeader>
 
@@ -393,9 +373,9 @@ export default function SearchPage() {
                           {book.genre}
                         </Badge>
                       )}
-                      {book.book_type && (
+                      {book.condition && (
                         <Badge variant="secondary" className="text-xs">
-                          {book.book_type}
+                          {book.condition}
                         </Badge>
                       )}
                     </div>

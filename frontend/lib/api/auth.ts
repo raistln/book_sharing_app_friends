@@ -4,15 +4,7 @@ import type { LoginRequest, RegisterRequest, AuthResponse, User } from '@/lib/ty
 export const authApi = {
   // Login
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const formData = new FormData();
-    formData.append('username', credentials.username);
-    formData.append('password', credentials.password);
-
-    const response = await apiClient.post<AuthResponse>('/auth/login', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
     return response.data;
   },
 

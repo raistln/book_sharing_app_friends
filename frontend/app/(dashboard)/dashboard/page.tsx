@@ -12,10 +12,11 @@ export default function DashboardPage() {
   const { user, isAuthenticated, logout, isLoadingUser } = useAuth();
 
   useEffect(() => {
-    if (!isAuthenticated && !isLoadingUser) {
+    // Solo redirigir si hemos terminado de cargar Y no estamos autenticados
+    if (!isLoadingUser && !isAuthenticated && !user) {
       router.push('/login');
     }
-  }, [isAuthenticated, isLoadingUser, router]);
+  }, [isAuthenticated, isLoadingUser, router, user]);
 
   if (isLoadingUser || !user) {
     return (
@@ -41,7 +42,7 @@ export default function DashboardPage() {
                 <p className="text-sm text-storybook-gold-light">Welcome, {user.username}!</p>
               </div>
             </div>
-            <Button onClick={logout} variant="outline" className="border-storybook-gold text-storybook-cream hover:bg-storybook-leather-dark">
+            <Button onClick={logout} variant="outline" className="border-storybook-gold text-storybook-leather hover:text-storybook-cream hover:bg-storybook-leather-dark">
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>

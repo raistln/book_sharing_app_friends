@@ -22,6 +22,7 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('❌ Error en interceptor de request:', error);
     return Promise.reject(error);
   }
 );
@@ -31,10 +32,22 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expirado o inválido
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('access_token');
-        window.location.href = '/login';
+      const url = error.config?.url || '';
+      // No redirigir si es login, register o cualquier endpoint de auth público
+      const isAuthEndpoint = url.includes('/auth/login') || 
+                            url.includes('/auth/register') ||
+                            url.includes('/auth/verify');
+      
+      if (!isAuthEndpoint) {
+        // Token expirado o inválido en otras operaciones
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('access_token');
+          // Solo redirigir si no estamos ya en login o register
+          const currentPath = window.location.pathname;
+          if (currentPath !== '/login' && currentPath !== '/register') {
+            window.location.href = '/login';
+          }
+        }
       }
     }
     return Promise.reject(error);
