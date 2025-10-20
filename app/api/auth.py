@@ -222,11 +222,20 @@ async def login(request: Request, db: Session = Depends(get_db)):
 
     logger.info(f"Login attempt username={username} from IP={client_ip}")
 
-    # Validate username format to prevent SQL injection
+    # Validate username/email format to prevent SQL injection
     import re
-    if not re.match(r'^[a-zA-Z0-9_.-]+$', username):
-        log_auth_attempt(username, False, client_ip)
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid username format")
+    # Permitir username o email
+    is_email = '@' in username
+    if is_email:
+        # Validación básica de email
+        if not re.match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', username):
+            log_auth_attempt(username, False, client_ip)
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid email format")
+    else:
+        # Validación de username
+        if not re.match(r'^[a-zA-Z0-9_.-]+$', username):
+            log_auth_attempt(username, False, client_ip)
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid username format")
 
     # Check for SQL injection patterns
     sql_patterns = [

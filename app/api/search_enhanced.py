@@ -5,16 +5,19 @@ Este módulo proporciona funcionalidades avanzadas de búsqueda para libros, usu
 con soporte para filtrado, ordenación y paginación.
 """
 from fastapi import APIRouter, Depends, Query, Request, HTTPException, status
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_ 
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
+from uuid import UUID
 
 from app.database import get_db
 from app.models.book import Book
 from app.models.user import User
-from app.models.group import Group
+from app.models.group import Group, GroupMember
 from app.schemas.error import ErrorResponse
+from app.services.auth_service import get_current_user
 from app.utils.pagination import paginate_query, PaginationParams
 from app.utils.rate_limiter import search_rate_limit
 from app.utils.logger import log_endpoint_call
@@ -30,6 +33,7 @@ router = APIRouter(
         500: {"description": "Error interno del servidor"}
     }
 )
+
 logger = logging.getLogger("book_sharing.search")
 
 class BookSearchResult(BaseModel):
@@ -97,7 +101,7 @@ class SearchSuggestionsResponse(BaseModel):
 
 @router.get(
     "/books",
-    response_model=BookSearchResponse,
+    # response_model=BookSearchResponse,  # Desactivado: conflicto con modelo Book de SQLAlchemy
     status_code=status.HTTP_200_OK,
     summary="Búsqueda avanzada de libros",
     description="""
@@ -192,6 +196,9 @@ async def search_books(
     sort_order: str = Query("desc", 
                            description="Orden de clasificación (asc/desc)",
                            examples={"ejemplo1": {"summary": "Orden descendente", "value": "desc"}}),
+    group_id: Optional[str] = Query(None,
+                                   description="Filtrar por grupo específico (UUID del grupo)"),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -222,8 +229,45 @@ async def search_books(
         HTTPException: 500 si ocurre un error en el servidor
     """
     try:
-        # Base query - only non-deleted books
-        query = db.query(Book).filter(Book.is_deleted == False)
+        # Get user's groups
+        user_groups_query = db.query(GroupMember).filter(
+            GroupMember.user_id == current_user.id
+        )
+        
+        # If filtering by specific group, check user is member
+        if group_id:
+            try:
+                group_uuid = UUID(group_id)
+                user_groups_query = user_groups_query.filter(GroupMember.group_id == group_uuid)
+            except (ValueError, AttributeError):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="ID de grupo inválido"
+                )
+        
+        user_groups = user_groups_query.all()
+        
+        # Get all member IDs from user's groups (excluding current user)
+        group_ids = [gm.group_id for gm in user_groups]
+        member_ids = set()
+        
+        if group_ids:
+            group_members = db.query(GroupMember).filter(
+                GroupMember.group_id.in_(group_ids),
+                GroupMember.user_id != current_user.id  # Exclude current user
+            ).all()
+            member_ids = {gm.user_id for gm in group_members}
+        
+        # Base query - books from group members (not from current user)
+        # Only show active books (not archived)
+        if member_ids:
+            query = db.query(Book).filter(
+                Book.owner_id.in_(member_ids),
+                Book.is_archived == False
+            )
+        else:
+            # No group members found, return empty query
+            query = db.query(Book).filter(Book.id == None)  # Always false
         
         # Text search in title, author, description, and ISBN (optional)
         if q is not None and q.strip():
@@ -236,11 +280,15 @@ async def search_books(
                     Book.isbn.ilike(search_term)
                 )
             )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error processing search query: {str(e)}", exc_info=True)
+        logger.error(f"Error type: {type(e).__name__}")
+        logger.error(f"Error details: {repr(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al procesar la búsqueda"
+            detail=f"Error al procesar la búsqueda: {str(e)}"
         )
     
     # Apply filters
@@ -279,11 +327,24 @@ async def search_books(
     else:
         query = query.order_by(order_field.desc())
     
-    # Log search parameters
-    logger.info(f"Book search: query='{q}', filters={{'genre': {genre}, 'type': {book_type}, 'available_only': {available_only}}}")
-    
     # Paginate results
-    return paginate_query(query, page, per_page)
+    result = paginate_query(query, page, per_page)
+    
+    # Convert items to dictionaries
+    items_dict = [jsonable_encoder(item) for item in result.items]
+    
+    # Return as dictionary
+    return {
+        "items": items_dict,
+        "total": result.total,
+        "page": result.page,
+        "per_page": result.per_page,
+        "total_pages": result.total_pages,
+        "has_next": result.has_next,
+        "has_prev": result.has_prev,
+        "next_page": result.next_page,
+        "prev_page": result.prev_page
+    }
 
 @router.get(
     "/users",

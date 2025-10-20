@@ -202,31 +202,44 @@ class GroupService:
 
     def create_invitation(self, group_id: uuid.UUID, user_id: uuid.UUID, invitation_data: InvitationCreate) -> Optional[Invitation]:
         """Crear una invitación a un grupo (solo admins)."""
-        logger.info("create_invitation group_id=%s actor_id=%s email=%s", str(group_id), str(user_id), invitation_data.email)
+        logger.info("create_invitation group_id=%s actor_id=%s email=%s username=%s", 
+                   str(group_id), str(user_id), invitation_data.email, invitation_data.username)
         if not self.is_group_admin(group_id, user_id):
             return None
 
-        # Verificar que no exista una invitación pendiente para este email
-        existing_invitation = self.db.query(Invitation).filter(
-            and_(
-                Invitation.group_id == group_id,
-                Invitation.email == invitation_data.email,
-                Invitation.is_accepted.is_(None),
-                Invitation.expires_at > datetime.now(timezone.utc)
-            )
-        ).first()
+        # Determinar el email a usar
+        email_to_use = invitation_data.email or ""
+        
+        # Si se proporciona username, buscar el email del usuario
+        if invitation_data.username and not invitation_data.email:
+            user = self.db.query(User).filter(User.username == invitation_data.username).first()
+            if user:
+                email_to_use = user.email
+            else:
+                logger.warning("create_invitation username not found: %s", invitation_data.username)
+                return None
 
-        if existing_invitation:
-            return None
+        # Si se proporciona email, verificar que no exista una invitación pendiente
+        if email_to_use:
+            existing_invitation = self.db.query(Invitation).filter(
+                and_(
+                    Invitation.group_id == group_id,
+                    Invitation.email == email_to_use,
+                    Invitation.is_accepted.is_(None)
+                )
+            ).first()
 
-        # Crear la invitación (expira en 7 días)
+            if existing_invitation:
+                return None
+
+        # Crear la invitación sin expiración (expires_at en el futuro lejano)
         import uuid as _uuid
         invitation = Invitation(
             group_id=group_id,
-            email=invitation_data.email,
+            email=email_to_use,
             message=invitation_data.message,
             invited_by=user_id,
-            expires_at=datetime.now(timezone.utc) + timedelta(days=7),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=365),  # 1 año de validez
             code=_uuid.uuid4().hex
         )
         self.db.add(invitation)
@@ -254,6 +267,27 @@ class GroupService:
             )
         ).all()
 
+    def cancel_invitation(self, group_id: uuid.UUID, invitation_id: uuid.UUID, user_id: uuid.UUID) -> bool:
+        """Cancelar una invitación (solo admins)."""
+        logger.info("cancel_invitation group_id=%s invitation_id=%s actor_id=%s", str(group_id), str(invitation_id), str(user_id))
+        if not self.is_group_admin(group_id, user_id):
+            return False
+
+        invitation = self.db.query(Invitation).filter(
+            and_(
+                Invitation.id == invitation_id,
+                Invitation.group_id == group_id
+            )
+        ).first()
+
+        if not invitation:
+            return False
+
+        self.db.delete(invitation)
+        self.db.commit()
+        logger.info("cancel_invitation success invitation_id=%s", str(invitation_id))
+        return True
+
     def respond_to_invitation(self, invitation_id: uuid.UUID, email: str, accept: bool) -> Optional[GroupMember]:
         """Responder a una invitación."""
         logger.info("respond_to_invitation invitation_id=%s email=%s accept=%s", str(invitation_id), email, accept)
@@ -261,8 +295,7 @@ class GroupService:
             and_(
                 Invitation.id == invitation_id,
                 Invitation.email == email,
-                Invitation.is_accepted.is_(None),
-                Invitation.expires_at > datetime.now(timezone.utc)
+                Invitation.is_accepted.is_(None)
             )
         ).first()
 

@@ -13,6 +13,7 @@ export interface SearchParams {
   min_rating?: number;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
+  group_id?: string;
 }
 
 export const searchApi = {

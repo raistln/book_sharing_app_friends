@@ -6,7 +6,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useSearch, useGenres, useLanguages, useConditions } from '@/lib/hooks/use-search';
+import { useMyGroups } from '@/lib/hooks/use-groups';
 import { booksApi } from '@/lib/api/books';
+import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,12 +33,14 @@ export default function SearchPage() {
     condition: '',
     sort_by: 'created_at',
     sort_order: 'desc' as 'asc' | 'desc',
+    group_id: '',
   });
 
   const { books, pagination, isLoading } = useSearch(filters);
   const { genres } = useGenres();
   const { languages } = useLanguages();
   const { conditions } = useConditions();
+  const { groups } = useMyGroups();
 
   useEffect(() => {
     if (!isAuthenticated && !isLoadingUser) {
@@ -66,6 +70,7 @@ export default function SearchPage() {
       condition: '',
       sort_by: 'created_at',
       sort_order: 'desc',
+      group_id: '',
     });
   };
 
@@ -92,42 +97,7 @@ export default function SearchPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light">
       {/* Header */}
-      <header className="bg-storybook-leather text-storybook-cream shadow-book sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                <Book className="h-8 w-8 text-storybook-gold" />
-                <div>
-                  <h1 className="font-display text-2xl font-bold">Book Sharing App</h1>
-                  <p className="text-sm text-storybook-gold-light">Discover Books</p>
-                </div>
-              </Link>
-              <nav className="hidden md:flex gap-4">
-                <Link href="/dashboard">
-                  <Button variant="ghost" className="text-storybook-cream hover:bg-storybook-leather-dark">
-                    Dashboard
-                  </Button>
-                </Link>
-                <Link href="/books">
-                  <Button variant="ghost" className="text-storybook-cream hover:bg-storybook-leather-dark">
-                    My Books
-                  </Button>
-                </Link>
-                <Link href="/search">
-                  <Button variant="ghost" className="text-storybook-gold hover:bg-storybook-leather-dark">
-                    Discover
-                  </Button>
-                </Link>
-              </nav>
-            </div>
-            <Button onClick={logout} variant="outline" className="border-storybook-gold text-storybook-leather hover:text-storybook-cream hover:bg-storybook-leather-dark">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Header subtitle="Discover Books" />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">
@@ -185,6 +155,27 @@ export default function SearchPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Group Filter */}
+                <div className="space-y-2">
+                  <Label>Group</Label>
+                  <Select
+                    value={filters.group_id || 'all'}
+                    onValueChange={(value) => setFilters({ ...filters, group_id: value === 'all' ? '' : value, page: 1 })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All groups" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All groups</SelectItem>
+                      {groups?.map((group) => (
+                        <SelectItem key={group.id} value={group.id}>
+                          {group.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 {/* Genre */}
                 <div className="space-y-2">
                   <Label>Genre</Label>

@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useMyBooks, useDeleteBook } from '@/lib/hooks/use-books';
 import { booksApi } from '@/lib/api/books';
+import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -63,42 +64,7 @@ export default function BooksPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light">
       {/* Header */}
-      <header className="bg-storybook-leather text-storybook-cream shadow-book sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                <Book className="h-8 w-8 text-storybook-gold" />
-                <div>
-                  <h1 className="font-display text-2xl font-bold">Book Sharing App</h1>
-                  <p className="text-sm text-storybook-gold-light">{user.username}'s Library</p>
-                </div>
-              </Link>
-              <nav className="hidden md:flex gap-4">
-                <Link href="/dashboard">
-                  <Button variant="ghost" className="text-storybook-cream hover:bg-storybook-leather-dark">
-                    Dashboard
-                  </Button>
-                </Link>
-                <Link href="/books">
-                  <Button variant="ghost" className="text-storybook-gold hover:bg-storybook-leather-dark">
-                    My Books
-                  </Button>
-                </Link>
-                <Link href="/search">
-                  <Button variant="ghost" className="text-storybook-cream hover:bg-storybook-leather-dark">
-                    Discover
-                  </Button>
-                </Link>
-              </nav>
-            </div>
-            <Button onClick={logout} variant="outline" className="border-storybook-gold text-storybook-leather hover:text-storybook-cream hover:bg-storybook-leather-dark">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Header subtitle={`${user.username}'s Library`} /> 
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">

@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Book, Users, Search, LogOut, Sparkles, Loader2 } from 'lucide-react';
@@ -32,23 +33,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light">
       {/* Header */}
-      <header className="bg-storybook-leather text-storybook-cream shadow-book">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Book className="h-8 w-8 text-storybook-gold" />
-              <div>
-                <h1 className="font-display text-2xl font-bold">Book Sharing App</h1>
-                <p className="text-sm text-storybook-gold-light">Welcome, {user.username}!</p>
-              </div>
-            </div>
-            <Button onClick={logout} variant="outline" className="border-storybook-gold text-storybook-leather hover:text-storybook-cream hover:bg-storybook-leather-dark">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Header subtitle={`Welcome, ${user.username}!`} />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">
@@ -87,6 +72,23 @@ export default function DashboardPage() {
           <Card className="hover:shadow-book-hover transition-all duration-300 cursor-pointer">
             <CardHeader>
               <div className="bg-storybook-gold/20 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                <Users className="h-6 w-6 text-storybook-leather" />
+              </div>
+              <CardTitle>My Groups</CardTitle>
+              <CardDescription>
+                Connect and share with reading communities
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" onClick={() => router.push('/groups')}>
+                View Groups
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-book-hover transition-all duration-300 cursor-pointer">
+            <CardHeader>
+              <div className="bg-storybook-gold/20 rounded-full w-12 h-12 flex items-center justify-center mb-4">
                 <Search className="h-6 w-6 text-storybook-leather" />
               </div>
               <CardTitle>Discover</CardTitle>
@@ -97,23 +99,6 @@ export default function DashboardPage() {
             <CardContent>
               <Button className="w-full" onClick={() => router.push('/search')}>
                 Search Books
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-book-hover transition-all duration-300 cursor-pointer">
-            <CardHeader>
-              <div className="bg-storybook-gold/20 rounded-full w-12 h-12 flex items-center justify-center mb-4">
-                <Users className="h-6 w-6 text-storybook-leather" />
-              </div>
-              <CardTitle>Community</CardTitle>
-              <CardDescription>
-                Connect with fellow readers
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" onClick={() => router.push('/groups')}>
-                View Groups
               </Button>
             </CardContent>
           </Card>
