@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useBook, useDeleteBook, useUploadCover } from '@/lib/hooks/use-books';
 import { booksApi } from '@/lib/api/books';
 import { RequestLoanButton } from '@/components/loans/request-loan-button';
+import { BookReviewsSection } from '@/components/reviews/book-reviews-section';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -75,7 +76,7 @@ export default function BookDetailPage() {
               Book not found
             </h3>
             <p className="text-storybook-ink-light mb-6">
-              The book you're looking for doesn't exist or has been removed.
+              The book you&apos;re looking for doesn&apos;t exist or has been removed.
             </p>
             <Link href="/books">
               <Button>Back to My Books</Button>
@@ -273,16 +274,6 @@ export default function BookDetailPage() {
                     </div>
                   )}
 
-                  {book.condition && (
-                    <div className="flex items-center gap-3">
-                      <Book className="h-5 w-5 text-storybook-leather" />
-                      <div>
-                        <p className="text-sm text-storybook-ink-light">Condition</p>
-                        <p className="font-semibold capitalize">{book.condition.replace('_', ' ')}</p>
-                      </div>
-                    </div>
-                  )}
-
                   {book.isbn && (
                     <div className="flex items-center gap-3 col-span-2">
                       <Tag className="h-5 w-5 text-storybook-leather" />
@@ -318,6 +309,11 @@ export default function BookDetailPage() {
           </div>
         </div>
 
+        {/* Reviews Section */}
+        <div className="mt-12">
+          <BookReviewsSection bookId={bookId} />
+        </div>
+
         {/* Delete Confirmation Dialog */}
         {showDeleteConfirm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -325,7 +321,7 @@ export default function BookDetailPage() {
               <CardHeader>
                 <CardTitle>Delete Book?</CardTitle>
                 <CardDescription>
-                  Are you sure you want to delete "{book.title}"? This action cannot be undone.
+                  Are you sure you want to delete &quot;{book.title}&quot;? This action cannot be undone.
                 </CardDescription>
               </CardHeader>
               <CardContent>
