@@ -15,7 +15,7 @@ psycopg2-binary = "^2.9.9"
 alembic = "^1.12.1"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
-python-multipart = "^0.0.6"
+python-multipart = "^0.0.20"
 httpx = "^0.25.2"
 pillow = "^10.1.0"  # Versión estable con binarios precompilados
 pydantic-core = "^2.33.2"  # Versión compatible con Python 3.11
