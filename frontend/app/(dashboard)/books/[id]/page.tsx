@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useBook, useDeleteBook, useUploadCover } from '@/lib/hooks/use-books';
 import { booksApi } from '@/lib/api/books';
+import { RequestLoanButton } from '@/components/loans/request-loan-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -124,7 +125,7 @@ export default function BookDetailPage() {
               <CardContent className="p-0">
                 <div className="relative h-96 bg-storybook-parchment overflow-hidden rounded-t-lg">
                   <Image
-                    src={booksApi.getCoverUrl(book.cover_image)}
+                    src={book.cover_url || '/placeholder-book.jpg'}
                     alt={book.title}
                     fill
                     className="object-cover"
@@ -190,8 +191,8 @@ export default function BookDetailPage() {
                 </div>
               </CardHeader>
               
-              {isOwner && (
-                <CardContent>
+              <CardContent>
+                {isOwner ? (
                   <div className="flex gap-3">
                     <Link href={`/books/${book.id}/edit`} className="flex-1">
                       <Button variant="outline" className="w-full">
@@ -208,8 +209,17 @@ export default function BookDetailPage() {
                       Delete
                     </Button>
                   </div>
-                </CardContent>
-              )}
+                ) : (
+                  <RequestLoanButton
+                    bookId={book.id}
+                    bookTitle={book.title}
+                    ownerId={book.owner_id}
+                    ownerName={book.owner?.username || 'Unknown'}
+                    isAvailable={book.status === 'available'}
+                    className="w-full"
+                  />
+                )}
+              </CardContent>
             </Card>
 
             {/* Description */}
@@ -243,13 +253,15 @@ export default function BookDetailPage() {
                     </div>
                   )}
                   
-                  <div className="flex items-center gap-3">
-                    <Package className="h-5 w-5 text-storybook-leather" />
-                    <div>
-                      <p className="text-sm text-storybook-ink-light">Type</p>
-                      <p className="font-semibold capitalize">{book.book_type}</p>
+                  {book.condition && (
+                    <div className="flex items-center gap-3">
+                      <Package className="h-5 w-5 text-storybook-leather" />
+                      <div>
+                        <p className="text-sm text-storybook-ink-light">Condition</p>
+                        <p className="font-semibold capitalize">{book.condition}</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {book.language && (
                     <div className="flex items-center gap-3">

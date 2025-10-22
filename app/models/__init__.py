@@ -7,3 +7,4 @@ from app.models.invitation import Invitation  # noqa: F401
 from app.models.book import Book  # noqa: F401
 from app.models.loan import Loan  # noqa: F401
 from app.models.review import Review  # noqa: F401
+from app.models.notification import Notification  # noqa: F401

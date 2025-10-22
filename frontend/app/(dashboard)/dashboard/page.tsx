@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Book, Users, Search, LogOut, Sparkles, Loader2 } from 'lucide-react';
+import { Book, Users, Search, LogOut, Sparkles, Loader2, BookOpen } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -99,6 +99,23 @@ export default function DashboardPage() {
             <CardContent>
               <Button className="w-full" onClick={() => router.push('/search')}>
                 Search Books
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-book-hover transition-all duration-300 cursor-pointer">
+            <CardHeader>
+              <div className="bg-storybook-gold/20 rounded-full w-12 h-12 flex items-center justify-center mb-4">
+                <BookOpen className="h-6 w-6 text-storybook-leather" />
+              </div>
+              <CardTitle>My Loans</CardTitle>
+              <CardDescription>
+                Manage your book loans and requests
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" onClick={() => router.push('/loans')}>
+                View Loans
               </Button>
             </CardContent>
           </Card>

@@ -33,6 +33,8 @@ from app.api.health import router as health_router
 from app.api.metadata import router as metadata_router
 from app.api.search_enhanced import router as search_enhanced_router
 from app.api.reviews import router as reviews_router
+from app.api.notifications import router as notifications_router
+from app.scheduler import start_scheduler, stop_scheduler
 
 # Initialize comprehensive logging system
 setup_logging(log_level=settings.LOG_LEVEL, enable_file_logging=settings.ENABLE_FILE_LOGGING)
@@ -164,9 +166,38 @@ app.include_router(scan_router)
 app.include_router(groups_router)
 app.include_router(group_books_router)
 app.include_router(chat_router)
+app.include_router(notifications_router)
 app.include_router(health_router)
 app.include_router(metadata_router)
 app.include_router(search_enhanced_router)  # Este tiene la lógica de grupos
+
+
+# Eventos de inicio y cierre
+@app.on_event("startup")
+async def startup_event():
+    """Evento que se ejecuta al iniciar la aplicación"""
+    logger.info("Starting up Book Sharing App...")
+    
+    # Iniciar scheduler de tareas programadas
+    try:
+        start_scheduler()
+        logger.info("Scheduler started successfully")
+    except Exception as e:
+        logger.error(f"Failed to start scheduler: {str(e)}")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Evento que se ejecuta al cerrar la aplicación"""
+    logger.info("Shutting down Book Sharing App...")
+    
+    # Detener scheduler
+    try:
+        stop_scheduler()
+        logger.info("Scheduler stopped successfully")
+    except Exception as e:
+        logger.error(f"Failed to stop scheduler: {str(e)}")
+
 
 @app.get("/")
 async def root():

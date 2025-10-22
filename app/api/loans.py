@@ -243,6 +243,91 @@ def reject_loan(loan_id: UUID, lender_id: UUID, db: Session = Depends(get_curren
 
 
 @router.post(
+    "/{loan_id}/cancel",
+    response_model=SuccessResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Cancel a loan request",
+    description="""
+    Cancels a pending loan request.
+    
+    This endpoint allows the borrower to cancel their own loan request before it's approved.
+    """,
+    responses={
+        200: {
+            "description": "Loan request canceled successfully",
+            "content": {
+                "application/json": {
+                    "example": {"success": True, "message": "Loan request canceled"}
+                }
+            }
+        },
+        400: {
+            "description": "Invalid request or loan cannot be canceled",
+            "model": ErrorResponse,
+            "content": {
+                "application/json": {
+                    "example": {"error": "No se pudo cancelar el préstamo", "details": {}}
+                }
+            }
+        },
+        403: {
+            "description": "User not authorized to cancel this loan",
+            "model": ErrorResponse
+        },
+        404: {
+            "description": "Loan not found",
+            "model": ErrorResponse
+        }
+    }
+)
+def cancel_loan(loan_id: UUID, borrower_id: UUID, db: Session = Depends(get_current_db)):
+    """
+    Cancel a pending loan request.
+    
+    Args:
+        loan_id: UUID of the loan to cancel
+        borrower_id: UUID of the user canceling the loan (must be the borrower)
+        db: Database session
+        
+    Returns:
+        Success response indicating the loan was canceled
+        
+    Raises:
+        HTTPException: If the loan cannot be canceled
+    """
+    logger.info("Canceling loan: loan_id=%s borrower_id=%s", loan_id, borrower_id)
+    
+    svc = LoanService(db)
+    
+    # Get the loan
+    loan = db.query(LoanModel).filter(LoanModel.id == loan_id).first()
+    if not loan:
+        raise HTTPException(status_code=404, detail="Préstamo no encontrado")
+    
+    # Verify the user is the borrower
+    if loan.borrower_id != borrower_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Solo el solicitante puede cancelar este préstamo"
+        )
+    
+    # Only pending loans can be canceled
+    if loan.status.name != "requested":
+        raise HTTPException(
+            status_code=400,
+            detail="Solo se pueden cancelar préstamos pendientes"
+        )
+    
+    # Cancel the loan (change status to CANCELLED)
+    from app.models.loan import LoanStatus
+    loan.status = LoanStatus.cancelled
+    db.commit()
+    
+    logger.info("Loan canceled successfully: loan_id=%s", loan_id)
+    return {"success": True, "message": "Loan request canceled"}
+
+
+@router.post(
     "/return",
     response_model=SuccessResponse,
     status_code=status.HTTP_200_OK,

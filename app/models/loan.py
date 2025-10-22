@@ -16,6 +16,7 @@ class LoanStatus(enum.Enum):
     approved = "approved"
     active = "active"
     returned = "returned"
+    cancelled = "cancelled"
 
 
 class Loan(Base):

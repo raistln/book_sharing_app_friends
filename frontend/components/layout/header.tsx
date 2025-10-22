@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { NotificationBell } from '@/components/notifications/notification-bell';
 
 interface HeaderProps {
   title?: string;
@@ -86,9 +87,22 @@ export function Header({ title = 'Book Sharing App', subtitle }: HeaderProps) {
                   Discover
                 </Button>
               </Link>
+              <Link href="/loans">
+                <Button
+                  variant="ghost"
+                  className={
+                    isActive('/loans') || pathname?.startsWith('/loans/')
+                      ? 'text-storybook-gold hover:bg-storybook-leather-dark'
+                      : 'text-storybook-cream hover:bg-storybook-leather-dark'
+                  }
+                >
+                  Loans
+                </Button>
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

@@ -40,6 +40,7 @@ class User(Base):
     group_memberships = relationship("GroupMember", back_populates="user", foreign_keys="GroupMember.user_id")
     sent_invitations = relationship("GroupMember", back_populates="inviter", foreign_keys="GroupMember.invited_by")
     sent_group_invitations = relationship("Invitation", back_populates="inviter")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}')>"
