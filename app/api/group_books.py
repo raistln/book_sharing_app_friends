@@ -15,7 +15,7 @@ from app.models.user import User
 from app.schemas.group_book import (
     GroupBook, GroupBookSummary, GroupBookFilter, GroupBookStats
 )
-from app.models.book import BookType, BookGenre
+from app.models.book import BookGenre
 
 router = APIRouter(prefix="/groups", tags=["group-books"])
 logger = logging.getLogger(__name__)
@@ -88,7 +88,6 @@ async def get_group_books(
     owner_id: Optional[UUID] = Query(None, description="Filtrar por ID del propietario del libro"),
     book_status: Optional[str] = Query(None, description="Filtrar por estado del libro (disponible, prestado, etc.)"),
     is_available: Optional[bool] = Query(None, description="Filtrar solo por disponibilidad (true = disponible, false = prestado)"),
-    book_type: Optional[BookType] = Query(None, description="Filtrar por tipo de libro"),
     genre: Optional[BookGenre] = Query(None, description="Filtrar por género literario"),
     isbn: Optional[str] = Query(None, description="Filtrar por ISBN (10 o 13 dígitos)"),
     limit: int = Query(50, ge=1, le=100, description="Número máximo de resultados por página (1-100)"),
@@ -108,7 +107,6 @@ async def get_group_books(
         owner_id=owner_id,
         status=book_status,
         is_available=is_available,
-        book_type=book_type,
         genre=genre,
         isbn=isbn
     )
@@ -116,9 +114,9 @@ async def get_group_books(
     try:
         logger.debug("get_group_books called")
         logger.info(
-            "group_books params group_id=%s user_id=%s search=%s owner_id=%s status=%s is_available=%s book_type=%s genre=%s isbn=%s limit=%s offset=%s",
+            "group_books params group_id=%s user_id=%s search=%s owner_id=%s status=%s is_available=%s genre=%s isbn=%s limit=%s offset=%s",
             str(group_id), str(current_user.id), search, str(owner_id) if owner_id else None, book_status, is_available,
-            getattr(book_type, "value", book_type), getattr(genre, "value", genre), isbn, limit, offset,
+            getattr(genre, "value", genre), isbn, limit, offset,
         )
         books = group_book_service.get_group_books(
             group_id, current_user.id, filters, limit, offset

@@ -54,14 +54,32 @@ def register_user(*, db: Session, user_in: UserCreate) -> User:
 
 def authenticate_user(*, db: Session, username: str, password: str) -> Optional[User]:
     """Devuelve el usuario si las credenciales son válidas, None en caso contrario."""
-    logger.info("authenticate_user username=%s", username)
+    logger.info("authenticate_user identifier=%s", username)
+
+    # Intentar buscar por username primero
     user: Optional[User] = db.query(User).filter(User.username == username).first()
+    logger.info("authenticate_user search by username=%s found=%s", username, user is not None)
+
+    # Si no se encuentra por username, intentar por email
     if not user:
+        user = db.query(User).filter(User.email == username).first()
+        if user:
+            logger.info("authenticate_user found user by email=%s", username)
+
+    if not user:
+        logger.info("authenticate_user no user found for identifier=%s", username)
         return None
+
+    logger.info("authenticate_user checking password for user=%s", user.username)
     if not verify_password(password, user.password_hash):
+        logger.info("authenticate_user invalid password for user=%s", user.username)
         return None
+
     if not user.is_active:
+        logger.info("authenticate_user user inactive=%s", user.username)
         return None
+
+    logger.info("authenticate_user authentication successful for user=%s", user.username)
     return user
 
 

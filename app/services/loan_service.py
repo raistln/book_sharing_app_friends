@@ -12,6 +12,15 @@ from sqlalchemy import and_
 
 from app.models.book import Book as BookModel, BookStatus
 from app.models.loan import Loan as LoanModel, LoanStatus
+from app.models.user import User
+from app.services.notification_service import (
+    create_loan_request_notification,
+    create_loan_approved_notification,
+    create_loan_rejected_notification,
+    create_due_date_reminder_notification,
+    create_overdue_notification
+)
+from app.services.email_service import email_service
 
 
 logger = logging.getLogger(__name__)
@@ -50,6 +59,37 @@ class LoanService:
         self.db.commit()
         self.db.refresh(loan)
         logger.info("request_loan created loan_id=%s", str(loan.id))
+        
+        # Crear notificación para el prestador
+        try:
+            borrower = self.db.query(User).filter(User.id == borrower_id).first()
+            lender = self.db.query(User).filter(User.id == book.owner_id).first()
+            
+            if borrower and lender:
+                # Crear notificación en la app
+                create_loan_request_notification(
+                    db=self.db,
+                    lender_id=book.owner_id,
+                    borrower_name=borrower.username,
+                    book_title=book.title,
+                    loan_id=loan.id
+                )
+                logger.info("Notification created for loan request: loan_id=%s", str(loan.id))
+                
+                # Enviar email si está configurado
+                if email_service.is_configured() and lender.email:
+                    loan_url = f"http://localhost:3000/loans/{loan.id}"  # TODO: Use proper frontend URL
+                    email_service.send_loan_request_email(
+                        to_email=lender.email,
+                        lender_name=lender.username,
+                        borrower_name=borrower.username,
+                        book_title=book.title,
+                        loan_url=loan_url
+                    )
+                    logger.info("Email sent for loan request: loan_id=%s", str(loan.id))
+        except Exception as e:
+            logger.error("Failed to create loan request notification: %s", str(e))
+        
         return loan
 
     def approve_loan(self, loan_id, lender_id, due_date: Optional[datetime] = None) -> Optional[LoanModel]:
@@ -73,6 +113,37 @@ class LoanService:
         book.current_borrower_id = loan.borrower_id
         self.db.commit()
         self.db.refresh(loan)
+        
+        # Crear notificación para el prestatario
+        try:
+            lender = self.db.query(User).filter(User.id == lender_id).first()
+            borrower = self.db.query(User).filter(User.id == loan.borrower_id).first()
+            
+            if lender and borrower:
+                # Crear notificación en la app
+                create_loan_approved_notification(
+                    db=self.db,
+                    borrower_id=loan.borrower_id,
+                    lender_name=lender.username,
+                    book_title=book.title,
+                    loan_id=loan.id
+                )
+                logger.info("Notification created for loan approval: loan_id=%s", str(loan.id))
+                
+                # Enviar email si está configurado
+                if email_service.is_configured() and borrower.email:
+                    due_date_str = loan.due_date.strftime('%d/%m/%Y') if loan.due_date else None
+                    email_service.send_loan_approved_email(
+                        to_email=borrower.email,
+                        borrower_name=borrower.username,
+                        lender_name=lender.username,
+                        book_title=book.title,
+                        due_date=due_date_str
+                    )
+                    logger.info("Email sent for loan approval: loan_id=%s", str(loan.id))
+        except Exception as e:
+            logger.error("Failed to create loan approval notification: %s", str(e))
+        
         return loan
 
     def reject_loan(self, loan_id, lender_id) -> bool:
@@ -83,6 +154,23 @@ class LoanService:
             return False
         if loan.status not in [LoanStatus.requested, LoanStatus.approved]:
             return False
+        
+        # Crear notificación antes de eliminar el préstamo
+        try:
+            lender = self.db.query(User).filter(User.id == lender_id).first()
+            book = self.db.query(BookModel).filter(BookModel.id == loan.book_id).first()
+            if lender and book:
+                create_loan_rejected_notification(
+                    db=self.db,
+                    borrower_id=loan.borrower_id,
+                    lender_name=lender.username,
+                    book_title=book.title,
+                    loan_id=loan.id
+                )
+                logger.info("Notification created for loan rejection: loan_id=%s", str(loan.id))
+        except Exception as e:
+            logger.error("Failed to create loan rejection notification: %s", str(e))
+        
         # Rechazo: eliminamos la solicitud para no requerir nuevo estado en enum
         self.db.delete(loan)
         self.db.commit()

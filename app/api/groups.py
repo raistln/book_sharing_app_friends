@@ -658,6 +658,367 @@ async def remove_group_member(
         )
 
 
+@router.get(
+    "/invitations/by-code/{code}",
+    response_model=Invitation,
+    summary="Obtener detalles de una invitación por código",
+    description="""
+    Obtiene los detalles completos de una invitación utilizando su código único.
+    
+    - No requiere autenticación para permitir la previsualización de la invitación
+    - Útil para mostrar información del grupo al usuario antes de aceptar
+    - Incluye detalles del grupo, mensaje de invitación y fecha de expiración
+    - Verifica si la invitación sigue siendo válida
+    """,
+    responses={
+        200: {
+            "description": "Detalles de la invitación obtenidos exitosamente",
+            "model": Invitation
+        },
+        404: {
+            "description": "Invitación no encontrada o ha expirado",
+            "model": ErrorResponse
+        },
+        410: {
+            "description": "La invitación ha expirado",
+            "model": ErrorResponse
+        }
+    }
+)
+async def get_invitation_by_code(
+    code: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Recupera los detalles de una invitación utilizando su código único.
+    
+    Este endpoint es de acceso público y no requiere autenticación, lo que permite
+    a los usuarios ver la información de la invitación antes de decidir si unirse.
+    """
+    from app.models.invitation import Invitation as InvitationModel
+    from app.models.group import Group
+    from app.models.user import User
+    
+    inv = db.query(InvitationModel).filter(InvitationModel.code == code).first()
+    if not inv:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitación no encontrada")
+    
+    # Obtener información del grupo
+    group = db.query(Group).filter(Group.id == inv.group_id).first()
+    
+    # Obtener información del usuario que invitó
+    inviter = db.query(User).filter(User.id == inv.invited_by).first()
+    
+    return {
+        "id": inv.id,
+        "group_id": inv.group_id,
+        "email": inv.email,
+        "message": inv.message,
+        "invited_by": inv.invited_by,
+        "created_at": inv.created_at,
+        "expires_at": inv.expires_at,
+        "is_accepted": inv.is_accepted,
+        "responded_at": inv.responded_at,
+        "code": inv.code,
+        "group": {"name": group.name} if group else None,
+        "invited_by_username": inviter.username if inviter else None
+    }
+
+
+@router.get(
+    "/invitations/pending",
+    response_model=List[Invitation],
+    summary="Obtener invitaciones pendientes del usuario",
+    description="""
+    Obtiene la lista de invitaciones pendientes del usuario autenticado.
+    
+    - Muestra solo las invitaciones dirigidas al correo del usuario
+    - Incluye únicamente invitaciones que no han sido respondidas
+    - Proporciona detalles del grupo y del usuario que realizó la invitación
+    - Las invitaciones expiradas se filtran automáticamente
+    """,
+    responses={
+        200: {
+            "description": "Lista de invitaciones pendientes obtenida exitosamente",
+            "content": {
+                "application/json": {
+                    "example": [
+                        {
+                            "id": "123e4567-e89b-12d3-a456-426614174000",
+                            "group_id": "123e4567-e89b-12d3-a456-426614174000",
+                            "email": "usuario@ejemplo.com",
+                            "code": "ABC123DEF456",
+                            "message": "¡Te invitamos a nuestro grupo de lectura!",
+                            "created_at": "2025-09-29T15:30:00",
+                            "expires_at": "2025-10-06T15:30:00",
+                            "is_accepted": None,
+                            "responded_at": None,
+                            "invited_by": {
+                                "id": "223e4567-e89b-12d3-a456-426614174001",
+                                "username": "usuario_invitador",
+                                "email": "invitador@ejemplo.com"
+                            },
+                            "group": {
+                                "id": "123e4567-e89b-12d3-a456-426614174000",
+                                "name": "Club de Lectura 2025",
+                                "description": "Grupo para amantes de la lectura",
+                                "created_at": "2025-09-01T10:00:00"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        400: {
+            "description": "Solicitud inválida - El usuario no tiene un correo electrónico configurado",
+            "model": ErrorResponse
+        },
+        401: {
+            "description": "No autorizado - Se requiere autenticación",
+            "model": ErrorResponse
+        }
+    }
+)
+async def get_pending_invitations(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Recupera todas las invitaciones pendientes dirigidas al usuario actual.
+    
+    Este endpoint devuelve una lista de invitaciones que aún no han sido
+    aceptadas ni rechazadas por el usuario y que no han expirado.
+    """
+    if not current_user.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El usuario debe tener un email para recibir invitaciones"
+        )
+    
+    group_service = GroupService(db)
+    invitations = group_service.get_user_invitations(current_user.email)
+    return invitations
+
+
+@router.post(
+    "/invitations/{invitation_id}/respond",
+    response_model=GroupMember,
+    summary="Responder a una invitación por ID",
+    description="""
+    Permite a un usuario responder a una invitación específica.
+    
+    - El usuario debe estar autenticado y su email debe coincidir con el de la invitación
+    - Si se acepta la invitación, el usuario se convierte en miembro del grupo
+    - Si se rechaza, la invitación se marca como rechazada
+    - Las invitaciones solo pueden responderse una vez
+    - La respuesta debe incluir un campo 'accept' que indique si se acepta (true) o rechaza (false) la invitación
+    """,
+    responses={
+        200: {
+            "description": "Invitación respondida exitosamente",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "123e4567-e89b-12d3-a456-426614174000",
+                        "group_id": "123e4567-e89b-12d3-a456-426614174001",
+                        "user_id": "223e4567-e89b-12d3-a456-426614174002",
+                        "role": "member",
+                        "joined_at": "2025-09-29T16:30:00",
+                        "user": {
+                            "id": "223e4567-e89b-12d3-a456-426614174002",
+                            "username": "nuevo_miembro",
+                            "email": "usuario@ejemplo.com"
+                        }
+                    }
+                }
+            }
+        },
+        400: {
+            "description": "Solicitud inválida - Usuario sin email o invitación ya respondida",
+            "model": ErrorResponse
+        },
+        403: {
+            "description": "No autorizado - No tienes permiso para responder esta invitación",
+            "model": ErrorResponse
+        },
+        404: {
+            "description": "No encontrado - Invitación no encontrada o expirada",
+            "model": ErrorResponse
+        },
+        410: {
+            "description": "Invitación expirada - La invitación ha caducado",
+            "model": ErrorResponse
+        }
+    }
+)
+async def respond_to_invitation(
+    invitation_id: UUID,
+    response_data: InvitationResponse,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Procesa la respuesta de un usuario a una invitación de grupo.
+    
+    Permite a un usuario aceptar o rechazar una invitación recibida.
+    La respuesta debe incluir un campo 'accept' que indique si se acepta (true) o rechaza (false) la invitación.
+    """
+    if not current_user.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El usuario debe tener un email para responder a la invitación"
+        )
+    
+    group_service = GroupService(db)
+    member = group_service.respond_to_invitation(
+        invitation_id, 
+        current_user.email, 
+        response_data.accept
+    )
+    
+    if not member and response_data.accept:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No se pudo aceptar la invitación. Puede que ya seas miembro del grupo o la invitación haya expirado"
+        )
+    
+    return member
+
+
+@router.delete(
+    "/{group_id}/invitations/{invitation_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Cancelar una invitación",
+    description="""
+    Cancela una invitación pendiente. Solo los administradores del grupo pueden cancelar invitaciones.
+    """
+)
+async def cancel_invitation(
+    group_id: UUID,
+    invitation_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Cancela una invitación pendiente."""
+    group_service = GroupService(db)
+    success = group_service.cancel_invitation(group_id, invitation_id, current_user.id)
+    
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invitación no encontrada o no tienes permisos"
+        )
+    
+    return None
+
+
+@router.post(
+    "/invitations/accept/{code}",
+    response_model=GroupMember,
+    summary="Aceptar una invitación por código",
+    description="""
+    Acepta una invitación a un grupo utilizando un código de invitación.
+    
+    - El código de invitación debe ser válido y no haber expirado
+    - Solo el usuario al que fue enviada la invitación puede aceptarla
+    - La invitación no debe haber sido previamente aceptada o rechazada
+    - Al aceptar, el usuario se convierte en miembro del grupo
+    """,
+    responses={
+        200: {
+            "description": "Invitación aceptada exitosamente",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "323e4567-e89b-12d3-a456-426614174003",
+                        "group_id": "123e4567-e89b-12d3-a456-426614174000",
+                        "user_id": "323e4567-e89b-12d3-a456-426614174003",
+                        "role": "member",
+                        "joined_at": "2025-10-01T14:30:00"
+                    }
+                }
+            }
+        },
+        400: {
+            "description": "Solicitud inválida - La invitación ya ha sido usada o no es válida",
+            "model": ErrorResponse
+        },
+        401: {
+            "description": "No autorizado - Se requiere autenticación",
+            "model": ErrorResponse
+        },
+        403: {
+            "description": "Prohibido - No tienes permiso para aceptar esta invitación",
+            "model": ErrorResponse
+        },
+        404: {
+            "description": "Invitación no encontrada o ha expirado",
+            "model": ErrorResponse
+        },
+        410: {
+            "description": "La invitación ha expirado",
+            "model": ErrorResponse
+        }
+    }
+)
+
+async def accept_invitation_by_code(
+    code: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Permite a un usuario aceptar una invitación a un grupo utilizando un código de invitación.
+    
+    El usuario debe estar autenticado. La invitación debe estar en estado pendiente.
+    """
+    from app.models.invitation import Invitation as InvitationModel
+    
+    # Buscar la invitación por código
+    invitation = db.query(InvitationModel).filter(
+        InvitationModel.code == code,
+        InvitationModel.is_accepted.is_(None)
+    ).first()
+    
+    if not invitation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Invitación no encontrada o ya ha sido usada"
+        )
+    
+    # Verificar que el usuario no sea ya miembro del grupo
+    from app.models.group import GroupMember
+    existing_member = db.query(GroupMember).filter(
+        GroupMember.group_id == invitation.group_id,
+        GroupMember.user_id == current_user.id
+    ).first()
+    
+    if existing_member:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ya eres miembro de este grupo"
+        )
+    
+    # Añadir como miembro del grupo directamente
+    from app.models.group import GroupRole
+    member = GroupMember(
+        group_id=invitation.group_id,
+        user_id=current_user.id,
+        role=GroupRole.MEMBER,
+        invited_by=invitation.invited_by
+    )
+    db.add(member)
+    
+    # Marcar invitación como aceptada
+    invitation.is_accepted = True
+    invitation.responded_at = datetime.now(timezone.utc)
+    
+    db.commit()
+    db.refresh(member)
+    
+    return member
+
+
 @router.post(
     "/{group_id}/invitations",
     response_model=Invitation,
@@ -859,301 +1220,3 @@ async def get_group_invitations(
         return invitations
 
 
-@router.get(
-    "/invitations/by-code/{code}",
-    response_model=Invitation,
-    summary="Obtener detalles de una invitación por código",
-    description="""
-    Obtiene los detalles completos de una invitación utilizando su código único.
-    
-    - No requiere autenticación para permitir la previsualización de la invitación
-    - Útil para mostrar información del grupo al usuario antes de aceptar
-    - Incluye detalles del grupo, mensaje de invitación y fecha de expiración
-    - Verifica si la invitación sigue siendo válida
-    """,
-    responses={
-        200: {
-            "description": "Detalles de la invitación obtenidos exitosamente",
-            "model": Invitation
-        },
-        404: {
-            "description": "Invitación no encontrada o ha expirado",
-            "model": ErrorResponse
-        },
-        410: {
-            "description": "La invitación ha expirado",
-            "model": ErrorResponse
-        }
-    }
-)
-async def get_invitation_by_code(
-    code: str,
-    db: Session = Depends(get_db)
-):
-    """
-    Recupera los detalles de una invitación utilizando su código único.
-    
-    Este endpoint es de acceso público y no requiere autenticación, lo que permite
-    a los usuarios ver la información de la invitación antes de decidir si unirse.
-    """
-    from app.models.invitation import Invitation as InvitationModel
-    inv = db.query(InvitationModel).filter(InvitationModel.code == code).first()
-    if not inv:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitación no encontrada")
-    return inv
-
-
-@router.get(
-    "/invitations/pending",
-    response_model=List[Invitation],
-    summary="Obtener invitaciones pendientes del usuario",
-    description="""
-    Obtiene la lista de invitaciones pendientes del usuario autenticado.
-    
-    - Muestra solo las invitaciones dirigidas al correo del usuario
-    - Incluye únicamente invitaciones que no han sido respondidas
-    - Proporciona detalles del grupo y del usuario que realizó la invitación
-    - Las invitaciones expiradas se filtran automáticamente
-    """,
-    responses={
-        200: {
-            "description": "Lista de invitaciones pendientes obtenida exitosamente",
-            "content": {
-                "application/json": {
-                    "example": [
-                        {
-                            "id": "123e4567-e89b-12d3-a456-426614174000",
-                            "group_id": "123e4567-e89b-12d3-a456-426614174000",
-                            "email": "usuario@ejemplo.com",
-                            "code": "ABC123DEF456",
-                            "message": "¡Te invitamos a nuestro grupo de lectura!",
-                            "created_at": "2025-09-29T15:30:00",
-                            "expires_at": "2025-10-06T15:30:00",
-                            "is_accepted": None,
-                            "responded_at": None,
-                            "invited_by": {
-                                "id": "223e4567-e89b-12d3-a456-426614174001",
-                                "username": "usuario_invitador",
-                                "email": "invitador@ejemplo.com"
-                            },
-                            "group": {
-                                "id": "123e4567-e89b-12d3-a456-426614174000",
-                                "name": "Club de Lectura 2025",
-                                "description": "Grupo para amantes de la lectura",
-                                "created_at": "2025-09-01T10:00:00"
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        400: {
-            "description": "Solicitud inválida - El usuario no tiene un correo electrónico configurado",
-            "model": ErrorResponse
-        },
-        401: {
-            "description": "No autorizado - Se requiere autenticación",
-            "model": ErrorResponse
-        }
-    }
-)
-async def get_pending_invitations(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Recupera todas las invitaciones pendientes dirigidas al usuario actual.
-    
-    Este endpoint devuelve una lista de invitaciones que aún no han sido
-    aceptadas ni rechazadas por el usuario y que no han expirado.
-    """
-    if not current_user.email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El usuario debe tener un email para recibir invitaciones"
-        )
-    
-    group_service = GroupService(db)
-    invitations = group_service.get_user_invitations(current_user.email)
-    return invitations
-
-
-@router.post(
-    "/invitations/{invitation_id}/respond",
-    response_model=GroupMember,
-    summary="Responder a una invitación por ID",
-    description="""
-    Permite a un usuario responder a una invitación específica.
-    
-    - El usuario debe estar autenticado y su email debe coincidir con el de la invitación
-    - Si se acepta la invitación, el usuario se convierte en miembro del grupo
-    - Si se rechaza, la invitación se marca como rechazada
-    - Las invitaciones solo pueden responderse una vez
-    - La respuesta debe incluir un campo 'accept' que indique si se acepta (true) o rechaza (false) la invitación
-    """,
-    responses={
-        200: {
-            "description": "Invitación respondida exitosamente",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "id": "123e4567-e89b-12d3-a456-426614174000",
-                        "group_id": "123e4567-e89b-12d3-a456-426614174001",
-                        "user_id": "223e4567-e89b-12d3-a456-426614174002",
-                        "role": "member",
-                        "joined_at": "2025-09-29T16:30:00",
-                        "user": {
-                            "id": "223e4567-e89b-12d3-a456-426614174002",
-                            "username": "nuevo_miembro",
-                            "email": "usuario@ejemplo.com"
-                        }
-                    }
-                }
-            }
-        },
-        400: {
-            "description": "Solicitud inválida - Usuario sin email o invitación ya respondida",
-            "model": ErrorResponse
-        },
-        403: {
-            "description": "No autorizado - No tienes permiso para responder esta invitación",
-            "model": ErrorResponse
-        },
-        404: {
-            "description": "No encontrado - Invitación no encontrada o expirada",
-            "model": ErrorResponse
-        },
-        410: {
-            "description": "Invitación expirada - La invitación ha caducado",
-            "model": ErrorResponse
-        }
-    }
-)
-async def respond_to_invitation(
-    invitation_id: UUID,
-    response_data: InvitationResponse,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Procesa la respuesta de un usuario a una invitación de grupo.
-    
-    Permite a un usuario aceptar o rechazar una invitación recibida.
-    La respuesta debe incluir un campo 'accept' que indique si se acepta (true) o rechaza (false) la invitación.
-    """
-    if not current_user.email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="El usuario debe tener un email para responder a la invitación"
-        )
-    
-    group_service = GroupService(db)
-    member = group_service.respond_to_invitation(
-        invitation_id, 
-        current_user.email, 
-        response_data.accept
-    )
-    
-    if not member and response_data.accept:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No se pudo aceptar la invitación. Puede que ya seas miembro del grupo o la invitación haya expirado"
-        )
-    
-    return member
-
-
-@router.post(
-    "/invitations/accept/{code}",
-    response_model=GroupMember,
-    summary="Aceptar una invitación por código",
-    description="""
-    Acepta una invitación a un grupo utilizando un código de invitación.
-    
-    - El código de invitación debe ser válido y no haber expirado
-    - Solo el usuario al que fue enviada la invitación puede aceptarla
-    - La invitación no debe haber sido previamente aceptada o rechazada
-    - Al aceptar, el usuario se convierte en miembro del grupo
-    """,
-    responses={
-        200: {
-            "description": "Invitación aceptada exitosamente",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "id": "323e4567-e89b-12d3-a456-426614174003",
-                        "group_id": "123e4567-e89b-12d3-a456-426614174000",
-                        "user_id": "323e4567-e89b-12d3-a456-426614174003",
-                        "role": "member",
-                        "joined_at": "2025-10-01T14:30:00"
-                    }
-                }
-            }
-        },
-        400: {
-            "description": "Solicitud inválida - La invitación ya ha sido usada o no es válida",
-            "model": ErrorResponse
-        },
-        401: {
-            "description": "No autorizado - Se requiere autenticación",
-            "model": ErrorResponse
-        },
-        403: {
-            "description": "Prohibido - No tienes permiso para aceptar esta invitación",
-            "model": ErrorResponse
-        },
-        404: {
-            "description": "Invitación no encontrada o ha expirado",
-            "model": ErrorResponse
-        },
-        410: {
-            "description": "La invitación ha expirado",
-            "model": ErrorResponse
-        }
-    }
-)
-
-async def accept_invitation_by_code(
-    code: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    Permite a un usuario aceptar una invitación a un grupo utilizando un código de invitación.
-    
-    El usuario debe estar autenticado y su correo electrónico debe coincidir con el de la invitación.
-    La invitación debe estar en estado pendiente y no haber expirado.
-    """
-    from app.models.invitation import Invitation as InvitationModel
-    
-    # Buscar la invitación por código
-    invitation = db.query(InvitationModel).filter(
-        InvitationModel.code == code,
-        InvitationModel.is_accepted.is_(None),
-        InvitationModel.expires_at > datetime.now(timezone.utc)
-    ).first()
-    
-    if not invitation:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Invitación no encontrada, ya ha sido usada o ha expirado"
-        )
-    
-    # Verificar que el correo coincida con el usuario autenticado
-    if current_user.email.lower() != invitation.email.lower():
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="No tienes permiso para aceptar esta invitación"
-        )
-    
-    # Usar el servicio para procesar la aceptación
-    group_service = GroupService(db)
-    member = group_service.respond_to_invitation(invitation.id, current_user.email, True)
-    
-    if not member:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No se pudo aceptar la invitación. Puede que ya seas miembro del grupo"
-        )
-    
-    return member

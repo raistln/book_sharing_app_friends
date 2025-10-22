@@ -53,13 +53,32 @@ class GoogleBooksClient:
         image_links = info.get("imageLinks") or {}
         cover_url = image_links.get("thumbnail")
         description = info.get("description")
-        return {
+        
+        # Extraer campos adicionales
+        publisher = info.get("publisher")
+        published_date = info.get("publishedDate")
+        page_count = info.get("pageCount")
+        language = info.get("language")
+        
+        result = {
             "title": title,
             "authors": authors,
             "isbn": isbn,
             "cover_url": cover_url,
             "description": description,
+            "publisher": publisher,
+            "published_date": published_date,
+            "page_count": page_count,
+            "language": language,
             "source": "googlebooks",
         }
+        
+        # Log para debugging
+        self.logger.debug(
+            "GoogleBooks normalized: title=%s publisher=%s date=%s pages=%s lang=%s",
+            title, publisher, published_date, page_count, language
+        )
+        
+        return result
 
 

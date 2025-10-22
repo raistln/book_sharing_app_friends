@@ -117,11 +117,11 @@ async def register(user_in: UserCreate, request: Request, db: Session = Depends(
     summary="Iniciar sesión",
     description="""
     Autentica a un usuario y devuelve un token de acceso JWT.
-    
-    Este endpoint valida las credenciales del usuario (nombre de usuario y contraseña)
+
+    Este endpoint valida las credenciales del usuario (nombre de usuario o email y contraseña)
     y, si son correctas, genera un token JWT que puede ser utilizado para autenticar
     solicitudes posteriores a la API.
-    
+
     El token debe incluirse en el encabezado de autorización como:
     `Authorization: Bearer <token>`
     """,
@@ -177,42 +177,94 @@ async def register(user_in: UserCreate, request: Request, db: Session = Depends(
 )
 @auth_rate_limit()
 @log_endpoint_call("/auth/login", "POST")
-async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+async def login(request: Request, db: Session = Depends(get_db)):
     client_ip = request.client.host if request.client else "unknown"
-    logger.info("Login attempt username=%s from IP=%s", form_data.username, client_ip)
-    
-    # Validate username format to prevent SQL injection
+
+    # Log detallado de lo que recibe la petición
+    logger.info("=== LOGIN ATTEMPT START ===")
+    logger.info(f"Request method: {request.method}")
+    logger.info(f"Request URL: {request.url}")
+    logger.info(f"Request headers: {dict(request.headers)}")
+    logger.info(f"Content-Type: {request.headers.get('content-type', 'Not specified')}")
+
+    try:
+        # Obtener el cuerpo de la petición como texto primero
+        body = await request.body()
+        logger.info(f"Raw request body: {body}")
+
+        if not body:
+            logger.error("Empty request body")
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Request body is empty")
+
+        # Intentar parsear como JSON
+        try:
+            import json
+            json_data = json.loads(body)
+            logger.info(f"Parsed JSON data: {json_data}")
+
+            username = json_data.get("username")
+            password = json_data.get("password")
+
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JSON: {e}")
+            logger.error(f"Raw body that failed to parse: {body}")
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid JSON format")
+
+    except Exception as e:
+        logger.error(f"Error reading request body: {e}")
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Error reading request")
+
+    logger.info(f"Extracted credentials - username: '{username}', password: '{password or 'None'}'")
+
+    if not username or not password:
+        logger.error(f"Missing credentials - username: '{username}', password: '{password}'")
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Usuario y contraseña requeridos")
+
+    logger.info(f"Login attempt username={username} from IP={client_ip}")
+
+    # Validate username/email format to prevent SQL injection
     import re
-    if not re.match(r'^[a-zA-Z0-9_.-]+$', form_data.username):
-        log_auth_attempt(form_data.username, False, client_ip)
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid username format")
-    
+    # Permitir username o email
+    is_email = '@' in username
+    if is_email:
+        # Validación básica de email
+        if not re.match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', username):
+            log_auth_attempt(username, False, client_ip)
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid email format")
+    else:
+        # Validación de username
+        if not re.match(r'^[a-zA-Z0-9_.-]+$', username):
+            log_auth_attempt(username, False, client_ip)
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid username format")
+
     # Check for SQL injection patterns
     sql_patterns = [
         r"'.*'", r'".*"', r'--', r'/\*.*\*/',
         r'\bDROP\b', r'\bDELETE\b', r'\bUNION\b', r'\bSELECT\b',
         r'\bINSERT\b', r'\bUPDATE\b', r'\bCREATE\b', r'\bALTER\b'
     ]
-    
+
     for pattern in sql_patterns:
-        if re.search(pattern, form_data.username, re.IGNORECASE):
-            log_auth_attempt(form_data.username, False, client_ip)
+        if re.search(pattern, username, re.IGNORECASE):
+            log_auth_attempt(username, False, client_ip)
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid username format")
-    
+
     try:
-        user = authenticate_user(db=db, username=form_data.username, password=form_data.password)
+        user = authenticate_user(db=db, username=username, password=password)
         if not user:
-            log_auth_attempt(form_data.username, False, client_ip)
+            log_auth_attempt(username, False, client_ip)
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas")
-        
+
         access_token = create_user_access_token(user)
-        log_auth_attempt(form_data.username, True, client_ip)
+        log_auth_attempt(username, True, client_ip)
+        logger.info("=== LOGIN ATTEMPT SUCCESS ===")
         return {"access_token": access_token, "token_type": "bearer"}
     except HTTPException:
         raise
     except Exception as e:
-        log_auth_attempt(form_data.username, False, client_ip)
-        logger.error(f"Login error for {form_data.username}: {str(e)}")
+        log_auth_attempt(username, False, client_ip)
+        logger.error(f"Login error for {username}: {str(e)}")
+        logger.info("=== LOGIN ATTEMPT FAILED ===")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error interno del servidor")
 
 
@@ -224,7 +276,7 @@ async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends
     description="""
     Este endpoint es un alias de /login para mantener compatibilidad con clientes OAuth2
     que esperan usar el endpoint estándar /token.
-    
+
     Es funcionalmente idéntico a /login y acepta los mismos parámetros.
     """,
     responses={
@@ -248,7 +300,7 @@ async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends
 async def token_alias(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """
     Alias para el endpoint de login, compatible con OAuth2.
-    
+
     Este endpoint es idéntico a /login pero responde en /token para compatibilidad
     con clientes que esperan la ruta estándar de OAuth2.
     """

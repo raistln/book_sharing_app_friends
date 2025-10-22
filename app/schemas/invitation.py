@@ -10,7 +10,8 @@ from uuid import UUID
 
 class InvitationBase(BaseModel):
     """Schema base para invitaciones."""
-    email: EmailStr = Field(..., description="Email del usuario a invitar")
+    email: Optional[EmailStr] = Field(None, description="Email del usuario a invitar (opcional)")
+    username: Optional[str] = Field(None, description="Username del usuario a invitar (opcional)")
     message: Optional[str] = Field(None, max_length=500, description="Mensaje personal opcional")
 
 

@@ -8,7 +8,7 @@ from uuid import UUID
 
 from app.schemas.book import Book
 from app.schemas.user import UserBasic
-from app.models.book import BookType, BookGenre
+from app.models.book import BookGenre
 
 
 class GroupBook(Book):
@@ -41,7 +41,6 @@ class GroupBookFilter(BaseModel):
     owner_id: Optional[UUID] = Field(None, description="Filtrar por propietario")
     status: Optional[str] = Field(None, description="Filtrar por estado (available, loaned, reserved)")
     is_available: Optional[bool] = Field(None, description="Filtrar por disponibilidad")
-    book_type: Optional[BookType] = Field(None, description="Filtrar por tipo de libro")
     genre: Optional[BookGenre] = Field(None, description="Filtrar por género")
     isbn: Optional[str] = Field(None, description="Filtrar por ISBN")
 

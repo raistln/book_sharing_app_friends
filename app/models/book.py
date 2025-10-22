@@ -18,17 +18,12 @@ class BookStatus(enum.Enum):
     reserved = "reserved"
 
 
-class BookType(enum.Enum):
-    novel = "novel"
-    comic = "comic"
-    manga = "manga"
-    graphic_novel = "graphic_novel"
-    short_story = "short_story"
-    poetry = "poetry"
-    essay = "essay"
-    biography = "biography"
-    autobiography = "autobiography"
-    other = "other"
+class BookCondition(enum.Enum):
+    new = "new"
+    like_new = "like_new"
+    good = "good"
+    fair = "fair"
+    poor = "poor"
 
 
 class BookGenre(enum.Enum):
@@ -80,14 +75,18 @@ class Book(Base):
     # Campos principales
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String(200), nullable=False, index=True)
-    author = Column(String(150), nullable=False, index=True)
+    author = Column(String(150), nullable=True, index=True)
     isbn = Column(String(20), nullable=True, unique=False, index=True)
     cover_url = Column(String(255), nullable=True)
     description = Column(Text, nullable=True)
+    publisher = Column(String(200), nullable=True)
+    published_date = Column(String(50), nullable=True)
+    page_count = Column(String(10), nullable=True)
+    language = Column(String(10), nullable=True)
     
     # Clasificación
-    book_type = Column(Enum(BookType, name="book_type"), nullable=True, index=True)
     genre = Column(Enum(BookGenre, name="book_genre"), nullable=True, index=True)
+    condition = Column(Enum(BookCondition, name="book_condition"), nullable=True, server_default="good")
 
     # Relaciones
     owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)

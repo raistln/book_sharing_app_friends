@@ -86,6 +86,10 @@ class BookSearchService:
                     "isbn": r.get("isbn"),
                     "cover_url": r.get("cover_url"),
                     "description": r.get("description"),
+                    "publisher": r.get("publisher"),
+                    "published_date": r.get("published_date"),
+                    "page_count": r.get("page_count"),
+                    "language": r.get("language"),
                     "source": r.get("source"),
                 }
             )
@@ -103,9 +107,10 @@ class BookSearchService:
         return normalized
 
     def _make_cache_key(self, *, title: Optional[str], isbn: Optional[str], limit: int) -> str:
+        # v2: incluye publisher, published_date, page_count, language
         if isbn:
-            return f"search:isbn:{isbn}:{limit}"
+            return f"search:v2:isbn:{isbn}:{limit}"
         t = (title or "").strip().lower().replace(" ", "+")
-        return f"search:title:{t}:{limit}"
+        return f"search:v2:title:{t}:{limit}"
 
 

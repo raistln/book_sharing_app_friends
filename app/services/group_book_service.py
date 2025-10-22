@@ -85,14 +85,6 @@ class GroupBookService:
                 else:
                     query = query.filter(Book.current_borrower_id.isnot(None))
             
-            if filters.book_type:
-                from sqlalchemy import cast, String, or_
-                from app.models.book import BookType as BookTypeEnum
-                bt = filters.book_type
-                bt_enum = bt if not isinstance(bt, str) else BookTypeEnum(bt)
-                bt_name = bt if isinstance(bt, str) else getattr(bt, "value", str(bt))
-                query = query.filter(or_(Book.book_type == bt_enum, cast(Book.book_type, String) == bt_name))
-            
             if filters.genre:
                 from sqlalchemy import cast, String, or_
                 from app.models.book import BookGenre as BookGenreEnum

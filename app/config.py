@@ -72,12 +72,22 @@ class Settings(BaseSettings):
     DEFAULT_PAGE_SIZE: int = 20
     MAX_PAGE_SIZE: int = 100
     
+    # Email/SMTP Configuration (Optional)
+    ENABLE_EMAIL_NOTIFICATIONS: bool = False  # Set to True to enable email notifications
+    SMTP_HOST: Optional[str] = None  # e.g., "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None  # Your email address
+    SMTP_PASSWORD: Optional[str] = None  # Your email password or app password
+    SMTP_FROM_EMAIL: Optional[str] = None  # Email to send from
+    SMTP_FROM_NAME: str = "Book Sharing App"
+    SMTP_USE_TLS: bool = True
+    
     @property
     def cors_origins_list(self):
         """Convert CORS origins string to list"""
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
     
-    model_config = ConfigDict(env_file=".env", case_sensitive=True)
+    model_config = ConfigDict(env_file=".env.backend", case_sensitive=True)
 
 
 def _maybe_override_db_url_with_alembic(settings: Settings) -> Settings:

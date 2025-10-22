@@ -6,7 +6,7 @@ from typing import List, Optional
 import logging
 
 from app.dependencies import get_current_db, optional_current_user
-from app.models.book import Book as BookModel, BookStatus, BookType, BookGenre
+from app.models.book import Book as BookModel, BookStatus, BookCondition, BookGenre
 from app.models.user import User
 from app.models.review import Review as ReviewModel
 from app.schemas.book import Book as BookSchema, BookCreate, BookUpdate, BookResponse
@@ -101,17 +101,6 @@ async def create_book(
                   getattr(current_user, 'id', None), 
                   bool(current_user))
         
-        # Normalize enums if they come as strings
-        bt = None
-        if payload.book_type is not None:
-            bt = (payload.book_type if not isinstance(payload.book_type, str) 
-                  else BookType(payload.book_type))
-        
-        g = None
-        if payload.genre is not None:
-            g = (payload.genre if not isinstance(payload.genre, str) 
-                  else BookGenre(payload.genre))
-
         # Handle owner assignment
         owner_id = current_user.id if current_user else payload.owner_id
         if owner_id is None:
@@ -138,6 +127,37 @@ async def create_book(
                     status_code=status.HTTP_400_BAD_REQUEST, 
                     detail="owner_id inválido"
                 )
+        
+        # Check for duplicate ISBN for this owner
+        if payload.isbn:
+            existing_book = db.query(BookModel).filter(
+                and_(
+                    BookModel.isbn == payload.isbn,
+                    BookModel.owner_id == owner_id,
+                    BookModel.is_archived == False
+                )
+            ).first()
+            
+            if existing_book:
+                logger.warning("Duplicate ISBN detected: isbn=%s owner_id=%s existing_book_id=%s", 
+                             payload.isbn, owner_id, existing_book.id)
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Ya tienes un libro con el ISBN {payload.isbn} en tu biblioteca: '{existing_book.title}'"
+                )
+        
+        # Normalize enums if they come as strings
+        g = None
+        if payload.genre is not None:
+            g = (payload.genre if not isinstance(payload.genre, str) 
+                  else BookGenre(payload.genre))
+        
+        c = None
+        if payload.condition is not None:
+            c = (payload.condition if not isinstance(payload.condition, str) 
+                  else BookCondition(payload.condition))
+        else:
+            c = BookCondition.good  # Default condition
 
         # Create book
         db_book = BookModel(
@@ -146,8 +166,12 @@ async def create_book(
             isbn=payload.isbn,
             cover_url=payload.cover_url,
             description=payload.description,
-            book_type=bt,
+            publisher=payload.publisher,
+            published_date=payload.published_date,
+            page_count=payload.page_count,
+            language=payload.language,
             genre=g,
+            condition=c,
             owner_id=owner_id,
             is_archived=getattr(payload, 'is_archived', False),
             status=BookStatus.available
