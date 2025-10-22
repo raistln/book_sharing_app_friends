@@ -658,6 +658,53 @@ async def remove_group_member(
         )
 
 
+@router.post(
+    "/{group_id}/leave",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Salir de un grupo",
+    description="""
+    Permite a un miembro salir voluntariamente de un grupo.
+    
+    - Cualquier miembro puede salir de un grupo
+    - El creador del grupo no puede salir (debe transferir el grupo primero)
+    - Si es el último admin, debe promover a otro miembro primero
+    - La acción es irreversible
+    """,
+    responses={
+        204: {
+            "description": "Has salido del grupo exitosamente"
+        },
+        403: {
+            "description": "No puedes salir del grupo (eres el creador o el último admin)",
+            "model": ErrorResponse
+        },
+        404: {
+            "description": "Grupo no encontrado o no eres miembro",
+            "model": ErrorResponse
+        }
+    }
+)
+async def leave_group(
+    group_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Permite a un usuario salir de un grupo.
+    
+    El creador del grupo no puede salir. Si eres el último administrador,
+    debes promover a otro miembro a admin antes de salir.
+    """
+    group_service = GroupService(db)
+    success = group_service.leave_group(group_id, current_user.id)
+    
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No puedes salir del grupo. Si eres el creador, transfiere el grupo primero. Si eres el último admin, promociona a otro miembro."
+        )
+
+
 @router.get(
     "/invitations/by-code/{code}",
     response_model=Invitation,

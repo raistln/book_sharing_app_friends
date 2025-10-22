@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Book, Users, Search, LogOut, Sparkles, Loader2, BookOpen } from 'lucide-react';
@@ -31,12 +30,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light">
-      {/* Header */}
-      <Header subtitle={`Welcome, ${user.username}!`} />
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
+    <main className="container mx-auto px-4 py-12">
         {/* Welcome Section */}
         <div className="mb-12 text-center animate-fade-in-up">
           <div className="inline-block mb-4">
@@ -146,21 +140,20 @@ export default function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-      </main>
 
-      {/* Footer */}
-      <footer className="bg-storybook-leather text-storybook-cream mt-20">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <p className="font-script text-xl mb-2">
-              "A reader lives a thousand lives before he dies"
-            </p>
-            <p className="text-storybook-gold-light text-sm">
-              - George R.R. Martin
-            </p>
+        {/* Footer */}
+        <footer className="bg-storybook-leather text-storybook-cream mt-20 -mx-4 px-4">
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center">
+              <p className="font-script text-xl mb-2">
+                "A reader lives a thousand lives before he dies"
+              </p>
+              <p className="text-storybook-gold-light text-sm">
+                - George R.R. Martin
+              </p>
+            </div>
           </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </main>
   );
 }

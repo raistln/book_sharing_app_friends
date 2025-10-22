@@ -243,6 +243,12 @@ book_sharing_app_friends/
    poetry run alembic upgrade head
    ```
 
+   **💡 Para resetear la base de datos** (útil para pruebas):
+   ```bash
+   poetry run python reset_database.py
+   # Escribe 'SI' para confirmar
+   ```
+
 6. **Ejecutar la aplicación**
    ```bash
    poetry run python main.py

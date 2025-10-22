@@ -135,8 +135,7 @@ export default function EditProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light">
-      <div className="container mx-auto px-4 py-12">
+    <main className="container mx-auto px-4 py-12">
         {/* Back Button */}
         <Link href="/profile">
           <Button variant="ghost" className="mb-6">
@@ -167,13 +166,23 @@ export default function EditProfilePage() {
                 </div>
                 <div className="flex-1 space-y-3">
                   <div className="flex gap-2">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarChange}
-                      disabled={uploadAvatar.isPending || deleteAvatar.isPending}
-                      className="flex-1"
-                    />
+                    <div className="flex-1">
+                      <Label 
+                        htmlFor="avatar-upload" 
+                        className="flex items-center justify-center w-full px-4 py-2 border-2 border-dashed border-storybook-leather rounded-lg cursor-pointer hover:bg-storybook-parchment transition-colors"
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        <span>Seleccionar imagen</span>
+                      </Label>
+                      <Input
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        disabled={uploadAvatar.isPending || deleteAvatar.isPending}
+                        className="hidden"
+                      />
+                    </div>
                     {avatarFile && (
                       <Button
                         onClick={handleAvatarUpload}
@@ -190,6 +199,11 @@ export default function EditProfilePage() {
                       </Button>
                     )}
                   </div>
+                  {avatarFile && (
+                    <p className="text-sm text-storybook-ink">
+                      Archivo seleccionado: {avatarFile.name}
+                    </p>
+                  )}
                   {avatarPreview && !avatarFile && (
                     <Button
                       variant="outline"
@@ -388,7 +402,6 @@ export default function EditProfilePage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </div>
+    </main>
   );
 }

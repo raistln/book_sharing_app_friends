@@ -91,6 +91,9 @@ export default function GroupDetailPage() {
   const isAdmin = group?.members.some(
     (m) => m.user.id === user?.id && m.role === 'admin'
   );
+  
+  const isCreator = group?.created_by === user?.id;
+  const canLeaveGroup = !isCreator; // Solo el creador no puede salir
 
   const handleEditGroup = () => {
     if (group) {
@@ -173,7 +176,7 @@ export default function GroupDetailPage() {
 
   if (loadingGroup) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light flex items-center justify-center">
+      <div className="flex items-center justify-center py-12">
         <Loader2 className="h-12 w-12 animate-spin text-storybook-leather" />
       </div>
     );
@@ -181,8 +184,8 @@ export default function GroupDetailPage() {
 
   if (!group) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light flex items-center justify-center">
-        <Card className="max-w-md">
+      <main className="container mx-auto px-4 py-12">
+        <Card className="max-w-md mx-auto">
           <CardContent className="pt-6 text-center">
             <p className="text-storybook-ink-light mb-4">Grupo no encontrado</p>
             <Link href="/groups">
@@ -190,13 +193,12 @@ export default function GroupDetailPage() {
             </Link>
           </CardContent>
         </Card>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light">
-      <div className="container mx-auto px-4 py-12">
+    <main className="container mx-auto px-4 py-12">
         {/* Back Button */}
         <Link href="/groups">
           <Button variant="ghost" className="mb-6">
@@ -313,7 +315,7 @@ export default function GroupDetailPage() {
                       </AlertDialog>
                     </>
                   )}
-                  {!isAdmin && (
+                  {canLeaveGroup && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="outline" size="sm">
@@ -326,6 +328,7 @@ export default function GroupDetailPage() {
                           <AlertDialogTitle>¿Salir del grupo?</AlertDialogTitle>
                           <AlertDialogDescription>
                             Dejarás de ser miembro de este grupo. Necesitarás una nueva invitación para volver a unirte.
+                            {isAdmin && " Como eres administrador, asegúrate de que haya otros administradores en el grupo."}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -559,7 +562,6 @@ export default function GroupDetailPage() {
             </Card>
           )}
         </div>
-      </div>
-    </div>
+    </main>
   );
 }

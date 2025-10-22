@@ -33,16 +33,28 @@ export function AddBookForm() {
       ? `${searchQuery} ${authorQuery}`
       : searchQuery;
     
-    const results = await searchBooks.mutateAsync({ query, limit: 10 });
-    setSearchResults(results || []);
+    try {
+      const results = await searchBooks.mutateAsync({ query, limit: 10 });
+      console.log('Search results:', results);
+      setSearchResults(results || []);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    }
   };
 
   // Búsqueda por ISBN
   const handleIsbnSearch = async () => {
     if (!isbnQuery.trim()) return;
     
-    const results = await searchBooks.mutateAsync({ query: isbnQuery, limit: 5 });
-    setSearchResults(results || []);
+    try {
+      const results = await searchBooks.mutateAsync({ query: isbnQuery, limit: 5 });
+      console.log('ISBN search results:', results);
+      setSearchResults(results || []);
+    } catch (error) {
+      console.error('ISBN search error:', error);
+      setSearchResults([]);
+    }
   };
 
   // Escaneo de imagen

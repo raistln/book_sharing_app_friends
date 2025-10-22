@@ -99,19 +99,7 @@ export default function BookDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light">
-      {/* Header */}
-      <header className="bg-storybook-leather text-storybook-cream shadow-book">
-        <div className="container mx-auto px-4 py-6">
-          <Link href="/books" className="flex items-center gap-3 hover:opacity-80 transition-opacity w-fit">
-            <Book className="h-8 w-8 text-storybook-gold" />
-            <h1 className="font-display text-2xl font-bold">Book Details</h1>
-          </Link>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-12 max-w-6xl">
+    <main className="container mx-auto px-4 py-12 max-w-6xl">
         <Link href="/books">
           <Button variant="ghost" className="mb-6">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -354,7 +342,6 @@ export default function BookDetailPage() {
             </Card>
           </div>
         )}
-      </main>
-    </div>
+    </main>
   );
 }

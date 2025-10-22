@@ -149,6 +149,52 @@ class GroupService:
         logger.info("remove_member success group_id=%s member_id=%s", str(group_id), str(member_id))
         return True
 
+    def leave_group(self, group_id: uuid.UUID, user_id: uuid.UUID) -> bool:
+        """Permite a un miembro salir voluntariamente de un grupo."""
+        logger.info("leave_group group_id=%s user_id=%s", str(group_id), str(user_id))
+        
+        # Verificar que el grupo existe
+        group = self.db.query(Group).filter(Group.id == group_id).first()
+        if not group:
+            logger.warning("leave_group failed: group not found")
+            return False
+        
+        # No permitir que el creador salga del grupo
+        if group.created_by == user_id:
+            logger.warning("leave_group failed: creator cannot leave")
+            return False
+        
+        # Obtener el miembro
+        member = self.db.query(GroupMember).filter(
+            and_(
+                GroupMember.group_id == group_id,
+                GroupMember.user_id == user_id
+            )
+        ).first()
+        
+        if not member:
+            logger.warning("leave_group failed: user is not a member")
+            return False
+        
+        # Si es admin, verificar que no sea el último admin
+        if member.role == GroupRole.ADMIN:
+            admin_count = self.db.query(GroupMember).filter(
+                and_(
+                    GroupMember.group_id == group_id,
+                    GroupMember.role == GroupRole.ADMIN
+                )
+            ).count()
+            
+            if admin_count <= 1:
+                logger.warning("leave_group failed: last admin cannot leave")
+                return False
+        
+        # Eliminar el miembro
+        self.db.delete(member)
+        self.db.commit()
+        logger.info("leave_group success group_id=%s user_id=%s", str(group_id), str(user_id))
+        return True
+
     def update_member_role(self, group_id: uuid.UUID, user_id: uuid.UUID, member_id: uuid.UUID, role_data: GroupMemberUpdate) -> Optional[GroupMember]:
         """Actualizar el rol de un miembro (solo admins)."""
         logger.info("update_member_role group_id=%s actor_id=%s member_id=%s new_role=%s", str(group_id), str(user_id), str(member_id), role_data.role)
@@ -245,7 +291,35 @@ class GroupService:
         self.db.add(invitation)
         self.db.commit()
         self.db.refresh(invitation)
-        logger.info("create_invitation success invitation_id=%s email=%s", str(invitation.id), invitation.email)
+        logger.info("create_invitation success invitation_id=%s email=%s code=%s", str(invitation.id), invitation.email, invitation.code)
+        
+        # Crear notificación si hay un usuario con ese email
+        if email_to_use:
+            invited_user = self.db.query(User).filter(User.email == email_to_use).first()
+            if invited_user:
+                from app.services.notification_service import NotificationService
+                notification_service = NotificationService(self.db)
+                
+                # Obtener información del grupo y quien invitó
+                group = self.db.query(Group).filter(Group.id == group_id).first()
+                inviter = self.db.query(User).filter(User.id == user_id).first()
+                
+                notification_service.create_notification(
+                    user_id=invited_user.id,
+                    notification_type='GROUP_INVITATION',
+                    title=f'Invitación a {group.name}',
+                    message=f'{inviter.username} te ha invitado a unirte al grupo "{group.name}". Código: {invitation.code}',
+                    priority='medium',
+                    data={
+                        'group_id': str(group_id),
+                        'invitation_id': str(invitation.id),
+                        'invitation_code': invitation.code,
+                        'group_name': group.name,
+                        'inviter_username': inviter.username
+                    }
+                )
+                logger.info("create_invitation notification sent to user_id=%s", str(invited_user.id))
+        
         return invitation
 
     def get_group_invitations(self, group_id: uuid.UUID, user_id: uuid.UUID) -> List[Invitation]:

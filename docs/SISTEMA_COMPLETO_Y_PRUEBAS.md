@@ -49,6 +49,29 @@
 
 ---
 
+## 🗑️ LIMPIAR BASE DE DATOS
+
+### **Opción 1: Reset con Alembic (Recomendado)**
+```bash
+cd d:/IAs/book_sharing_app_friends
+python reset_database.py
+```
+- Elimina todas las tablas
+- Recrea usando migraciones de Alembic
+- Mantiene historial de migraciones
+
+### **Opción 2: Reset Simple**
+```bash
+python reset_database_simple.py
+```
+- Elimina y recrea tablas directamente
+- Más rápido pero no usa Alembic
+- Útil para desarrollo rápido
+
+**⚠️ ADVERTENCIA:** Ambos scripts eliminarán TODOS los datos. Te pedirán confirmación antes de ejecutar.
+
+---
+
 ## 🚀 CÓMO INICIAR EL SISTEMA
 
 ### **Backend:**

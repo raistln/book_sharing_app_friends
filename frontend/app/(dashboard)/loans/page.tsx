@@ -13,7 +13,7 @@ export default function LoansPage() {
   const { loans } = useUserLoans(user?.id);
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-6xl">
+    <main className="container mx-auto py-8 px-4 max-w-6xl">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-storybook-ink mb-2">Mis Préstamos</h1>
@@ -81,6 +81,6 @@ export default function LoansPage() {
 
       {/* Lista de préstamos con tabs */}
       <LoanList userId={user?.id} showTabs={true} />
-    </div>
+    </main>
   );
 }

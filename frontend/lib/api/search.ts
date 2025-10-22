@@ -17,7 +17,7 @@ export interface SearchParams {
 }
 
 export const searchApi = {
-  // Search books
+  // Search books in database (from group members) - for Discover page
   async searchBooks(params: SearchParams): Promise<PaginatedResponse<Book>> {
     const searchParams = new URLSearchParams();
     
@@ -28,7 +28,7 @@ export const searchApi = {
     });
 
     const response = await apiClient.get<PaginatedResponse<Book>>(
-      `/search/books?${searchParams.toString()}`
+      `/discover/books?${searchParams.toString()}`  // Changed from /search/books to /discover/books
     );
     return response.data;
   },
