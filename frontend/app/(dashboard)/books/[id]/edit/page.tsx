@@ -13,6 +13,44 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Book, ArrowLeft, Loader2, Save } from 'lucide-react';
 
+const GENRE_OPTIONS = [
+  { value: 'fiction', label: 'Fiction' },
+  { value: 'science_fiction', label: 'Science Fiction' },
+  { value: 'fantasy', label: 'Fantasy' },
+  { value: 'mystery', label: 'Mystery' },
+  { value: 'thriller', label: 'Thriller' },
+  { value: 'horror', label: 'Horror' },
+  { value: 'romance', label: 'Romance' },
+  { value: 'historical_fiction', label: 'Historical Fiction' },
+  { value: 'literary_fiction', label: 'Literary Fiction' },
+  { value: 'adventure', label: 'Adventure' },
+  { value: 'western', label: 'Western' },
+  { value: 'dystopian', label: 'Dystopian' },
+  { value: 'magical_realism', label: 'Magical Realism' },
+  { value: 'non_fiction', label: 'Non Fiction' },
+  { value: 'biography', label: 'Biography' },
+  { value: 'autobiography', label: 'Autobiography' },
+  { value: 'history', label: 'History' },
+  { value: 'philosophy', label: 'Philosophy' },
+  { value: 'psychology', label: 'Psychology' },
+  { value: 'science', label: 'Science' },
+  { value: 'technology', label: 'Technology' },
+  { value: 'business', label: 'Business' },
+  { value: 'self_help', label: 'Self Help' },
+  { value: 'travel', label: 'Travel' },
+  { value: 'cooking', label: 'Cooking' },
+  { value: 'health', label: 'Health' },
+  { value: 'religion', label: 'Religion' },
+  { value: 'politics', label: 'Politics' },
+  { value: 'economics', label: 'Economics' },
+  { value: 'education', label: 'Education' },
+  { value: 'children', label: 'Children' },
+  { value: 'young_adult', label: 'Young Adult' },
+  { value: 'reference', label: 'Reference' },
+  { value: 'academic', label: 'Academic' },
+  { value: 'other', label: 'Other' },
+];
+
 export default function EditBookPage() {
   const router = useRouter();
   const params = useParams();
@@ -28,9 +66,7 @@ export default function EditBookPage() {
     description: '',
     isbn: '',
     genre: '',
-    book_type: 'physical' as 'physical' | 'digital',
     language: '',
-    condition: '' as 'new' | 'like_new' | 'good' | 'fair' | 'poor' | '',
     status: 'available' as 'available' | 'borrowed' | 'reserved',
   });
 
@@ -43,9 +79,7 @@ export default function EditBookPage() {
         description: book.description || '',
         isbn: book.isbn || '',
         genre: book.genre || '',
-        book_type: book.book_type || 'physical',
         language: book.language || '',
-        condition: book.condition || '',
         status: book.status || 'available',
       });
     }
@@ -71,7 +105,6 @@ export default function EditBookPage() {
     const dataToSend: any = {
       title: formData.title,
       author: formData.author,
-      book_type: formData.book_type,
       status: formData.status,
     };
 
@@ -79,7 +112,6 @@ export default function EditBookPage() {
     if (formData.isbn) dataToSend.isbn = formData.isbn;
     if (formData.genre) dataToSend.genre = formData.genre;
     if (formData.language) dataToSend.language = formData.language;
-    if (formData.condition) dataToSend.condition = formData.condition;
 
     updateBook.mutate({ id: bookId, data: dataToSend });
   };
@@ -188,31 +220,20 @@ export default function EditBookPage() {
               {/* Genre */}
               <div className="space-y-2">
                 <Label htmlFor="genre">Genre</Label>
-                <Input
-                  id="genre"
-                  placeholder="e.g., Fiction, Science Fiction, Mystery"
-                  value={formData.genre}
-                  onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
-                  disabled={updateBook.isPending}
-                />
-              </div>
-
-              {/* Book Type */}
-              <div className="space-y-2">
-                <Label htmlFor="book_type">Book Type *</Label>
                 <Select
-                  value={formData.book_type}
-                  onValueChange={(value: 'physical' | 'digital') =>
-                    setFormData({ ...formData, book_type: value })
-                  }
+                  value={formData.genre}
+                  onValueChange={(value) => setFormData({ ...formData, genre: value })}
                   disabled={updateBook.isPending}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select book type" />
+                  <SelectTrigger id="genre">
+                    <SelectValue placeholder="Select genre" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="physical">Physical</SelectItem>
-                    <SelectItem value="digital">Digital</SelectItem>
+                    {GENRE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -228,31 +249,6 @@ export default function EditBookPage() {
                   disabled={updateBook.isPending}
                 />
               </div>
-
-              {/* Condition (only for physical books) */}
-              {formData.book_type === 'physical' && (
-                <div className="space-y-2">
-                  <Label htmlFor="condition">Condition</Label>
-                  <Select
-                    value={formData.condition}
-                    onValueChange={(value: any) =>
-                      setFormData({ ...formData, condition: value })
-                    }
-                    disabled={updateBook.isPending}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select condition" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="new">New</SelectItem>
-                      <SelectItem value="like_new">Like New</SelectItem>
-                      <SelectItem value="good">Good</SelectItem>
-                      <SelectItem value="fair">Fair</SelectItem>
-                      <SelectItem value="poor">Poor</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
 
               {/* Status */}
               <div className="space-y-2">

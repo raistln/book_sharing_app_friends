@@ -25,7 +25,7 @@ import logging
 
 # Configuración del router con respuestas por defecto
 router = APIRouter(
-    prefix="/search",
+    prefix="",
     tags=["search"],
     responses={
         401: {"description": "No autorizado - Se requiere autenticación"},

@@ -11,6 +11,7 @@ import uuid
 from app.models.group import Group, GroupMember, GroupRole
 from app.models.invitation import Invitation
 from app.models.user import User
+
 from app.schemas.group import GroupCreate, GroupUpdate, GroupMemberCreate, GroupMemberUpdate
 from app.schemas.invitation import InvitationCreate
 from app.utils.security import hash_password
@@ -293,43 +294,7 @@ class GroupService:
         self.db.refresh(invitation)
         logger.info("create_invitation success invitation_id=%s email=%s code=%s", str(invitation.id), invitation.email, invitation.code)
         
-        # Crear notificación si hay un usuario con ese email
-        if email_to_use:
-            invited_user = self.db.query(User).filter(User.email == email_to_use).first()
-            if invited_user:
-                from app.services.notification_service import NotificationService
-                notification_service = NotificationService(self.db)
-                
-                # Obtener información del grupo y quien invitó
-                group = self.db.query(Group).filter(Group.id == group_id).first()
-                inviter = self.db.query(User).filter(User.id == user_id).first()
-                
-                notification_service.create_notification(
-                    user_id=invited_user.id,
-                    notification_type='GROUP_INVITATION',
-                    title=f'Invitación a {group.name}',
-                    message=f'{inviter.username} te ha invitado a unirte al grupo "{group.name}". Código: {invitation.code}',
-                    priority='medium',
-                    data={
-                        'group_id': str(group_id),
-                        'invitation_id': str(invitation.id),
-                        'invitation_code': invitation.code,
-                        'group_name': group.name,
-                        'inviter_username': inviter.username
-                    }
-                )
-                logger.info("create_invitation notification sent to user_id=%s", str(invited_user.id))
-        
         return invitation
-
-    def get_group_invitations(self, group_id: uuid.UUID, user_id: uuid.UUID) -> List[Invitation]:
-        """Obtener invitaciones de un grupo (solo admins)."""
-        if not self.is_group_admin(group_id, user_id):
-            return []
-
-        return self.db.query(Invitation).filter(
-            Invitation.group_id == group_id
-        ).all()
 
     def get_user_invitations(self, email: str) -> List[Invitation]:
         """Obtener invitaciones pendientes de un usuario por email."""
@@ -340,6 +305,21 @@ class GroupService:
                 Invitation.expires_at > datetime.now(timezone.utc)
             )
         ).all()
+
+    def get_group_invitations(self, group_id: uuid.UUID, user_id: uuid.UUID) -> Optional[List[Invitation]]:
+        """Obtener todas las invitaciones de un grupo (solo admins)."""
+        logger.info("get_group_invitations group_id=%s actor_id=%s", str(group_id), str(user_id))
+
+        if not self.is_group_admin(group_id, user_id):
+            logger.warning("get_group_invitations denied: user is not admin")
+            return None
+
+        invitations = self.db.query(Invitation).filter(
+            Invitation.group_id == group_id
+        ).order_by(Invitation.created_at.desc()).all()
+
+        logger.info("get_group_invitations success group_id=%s count=%s", str(group_id), len(invitations))
+        return invitations
 
     def cancel_invitation(self, group_id: uuid.UUID, invitation_id: uuid.UUID, user_id: uuid.UUID) -> bool:
         """Cancelar una invitación (solo admins)."""
