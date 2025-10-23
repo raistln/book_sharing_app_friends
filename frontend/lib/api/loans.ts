@@ -9,6 +9,8 @@ import type {
   RejectLoanResponse,
   ReturnBookRequest,
   ReturnBookResponse,
+  CancelLoanRequest,
+  CancelLoanResponse,
   SetDueDateRequest,
   SetDueDateResponse,
 } from '@/lib/types/loan';
@@ -52,6 +54,20 @@ export const loansApi = {
       {
         params: {
           lender_id: data.lender_id,
+        },
+      }
+    );
+    return response.data;
+  },
+
+  // Cancelar préstamo
+  async cancelLoan(data: CancelLoanRequest): Promise<CancelLoanResponse> {
+    const response = await apiClient.post<CancelLoanResponse>(
+      `/loans/${data.loan_id}/cancel`,
+      null,
+      {
+        params: {
+          borrower_id: data.borrower_id,
         },
       }
     );

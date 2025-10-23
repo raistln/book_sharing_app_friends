@@ -1,8 +1,8 @@
 'use client';
 
-import { use } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { useLoan, useApproveLoan, useRejectLoan, useReturnBook, useSetDueDate } from '@/lib/hooks/use-loans';
+import { useLoan, useApproveLoan, useRejectLoan, useReturnBook, useSetDueDate, useCancelLoan } from '@/lib/hooks/use-loans';
 import { ChatBox } from '@/components/chat/chat-box';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,30 +13,29 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-const statusColors = {
-  PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  APPROVED: 'bg-green-100 text-green-800 border-green-300',
-  ACTIVE: 'bg-blue-100 text-blue-800 border-blue-300',
-  RETURNED: 'bg-gray-100 text-gray-800 border-gray-300',
-  REJECTED: 'bg-red-100 text-red-800 border-red-300',
-  CANCELLED: 'bg-gray-100 text-gray-800 border-gray-300',
+const statusColors: Record<string, string> = {
+  requested: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  approved: 'bg-green-100 text-green-800 border-green-300',
+  active: 'bg-blue-100 text-blue-800 border-blue-300',
+  returned: 'bg-gray-100 text-gray-800 border-gray-300',
+  cancelled: 'bg-gray-100 text-gray-800 border-gray-300',
 };
 
-const statusLabels = {
-  PENDING: 'Pendiente',
-  APPROVED: 'Aprobado',
-  ACTIVE: 'Activo',
-  RETURNED: 'Devuelto',
-  REJECTED: 'Rechazado',
-  CANCELLED: 'Cancelado',
+const statusLabels: Record<string, string> = {
+  requested: 'Pendiente',
+  approved: 'Aprobado',
+  active: 'Activo',
+  returned: 'Devuelto',
+  cancelled: 'Cancelado',
 };
 
-export default function LoanDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+type LoanPageParams = { params: { id: string } };
+
+export default function LoanDetailPage({ params }: LoanPageParams) {
+  const id = params.id;
   const { user } = useAuth();
   const router = useRouter();
   const { loan, isLoading, refetch } = useLoan(id);
@@ -44,6 +43,7 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
   const rejectLoan = useRejectLoan();
   const returnBook = useReturnBook();
   const setDueDate = useSetDueDate();
+  const cancelLoan = useCancelLoan();
 
   const [dueDate, setDueDateValue] = useState('');
   const [showDueDateInput, setShowDueDateInput] = useState(false);
@@ -73,8 +73,8 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
 
   const isLender = loan.lender_id === user?.id;
   const isBorrower = loan.borrower_id === user?.id;
-  const isPending = loan.status === 'PENDING';
-  const isActive = loan.status === 'APPROVED' || loan.status === 'ACTIVE';
+  const isPending = loan.status === 'requested';
+  const isActive = loan.status === 'approved' || loan.status === 'active';
   const isOverdue = loan.due_date && new Date(loan.due_date) < new Date() && isActive;
 
   const otherUser = isLender ? loan.borrower : loan.lender;
@@ -94,6 +94,15 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
     await rejectLoan.mutateAsync({
       loan_id: loan.id,
       lender_id: user.id,
+    });
+    router.push('/loans');
+  };
+
+  const handleCancel = async () => {
+    if (!user?.id) return;
+    await cancelLoan.mutateAsync({
+      loan_id: loan.id,
+      borrower_id: user.id,
     });
     router.push('/loans');
   };
@@ -134,8 +143,8 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
               {isLender ? 'Has prestado este libro' : 'Has solicitado este libro'}
             </p>
           </div>
-          <Badge className={statusColors[loan.status]}>
-            {statusLabels[loan.status]}
+          <Badge className={statusColors[loan.status] ?? 'bg-gray-100 text-gray-800 border-gray-300'}>
+            {statusLabels[loan.status] ?? loan.status}
           </Badge>
         </div>
       </div>
@@ -314,7 +323,25 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
                   </div>
                 )}
 
-                {isBorrower && isActive && (
+                {isBorrower && isPending && (
+                  <Button
+                    onClick={handleCancel}
+                    disabled={cancelLoan.isPending}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    {cancelLoan.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Cancelando...
+                      </>
+                    ) : (
+                      'Cancelar solicitud'
+                    )}
+                  </Button>
+                )}
+
+                {isLender && isActive && (
                   <Button
                     onClick={handleReturn}
                     disabled={returnBook.isPending}
@@ -323,10 +350,10 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
                     {returnBook.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Marcando como devuelto...
+                        Confirmando devolución...
                       </>
                     ) : (
-                      'Marcar como devuelto'
+                      'Confirmar devolución'
                     )}
                   </Button>
                 )}

@@ -15,32 +15,31 @@ interface LoanCardProps {
   onApprove?: (loanId: string) => void;
   onReject?: (loanId: string) => void;
   onReturn?: (bookId: string) => void;
+  onCancel?: (loanId: string) => void;
   showActions?: boolean;
 }
 
-const statusColors = {
-  PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  APPROVED: 'bg-green-100 text-green-800 border-green-300',
-  ACTIVE: 'bg-blue-100 text-blue-800 border-blue-300',
-  RETURNED: 'bg-gray-100 text-gray-800 border-gray-300',
-  REJECTED: 'bg-red-100 text-red-800 border-red-300',
-  CANCELLED: 'bg-gray-100 text-gray-800 border-gray-300',
+const statusColors: Record<string, string> = {
+  requested: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  approved: 'bg-green-100 text-green-800 border-green-300',
+  active: 'bg-blue-100 text-blue-800 border-blue-300',
+  returned: 'bg-gray-100 text-gray-800 border-gray-300',
+  cancelled: 'bg-gray-100 text-gray-800 border-gray-300',
 };
 
-const statusLabels = {
-  PENDING: 'Pendiente',
-  APPROVED: 'Aprobado',
-  ACTIVE: 'Activo',
-  RETURNED: 'Devuelto',
-  REJECTED: 'Rechazado',
-  CANCELLED: 'Cancelado',
+const statusLabels: Record<string, string> = {
+  requested: 'Pendiente',
+  approved: 'Aprobado',
+  active: 'Activo',
+  returned: 'Devuelto',
+  cancelled: 'Cancelado',
 };
 
-export function LoanCard({ loan, currentUserId, onApprove, onReject, onReturn, showActions = true }: LoanCardProps) {
+export function LoanCard({ loan, currentUserId, onApprove, onReject, onReturn, onCancel, showActions = true }: LoanCardProps) {
   const isLender = loan.lender_id === currentUserId;
   const isBorrower = loan.borrower_id === currentUserId;
-  const isPending = loan.status === 'PENDING';
-  const isActive = loan.status === 'APPROVED' || loan.status === 'ACTIVE';
+  const isPending = loan.status === 'requested';
+  const isActive = loan.status === 'approved' || loan.status === 'active';
   const isOverdue = loan.due_date && new Date(loan.due_date) < new Date() && isActive;
 
   return (
@@ -61,8 +60,8 @@ export function LoanCard({ loan, currentUserId, onApprove, onReject, onReturn, s
               )}
             </CardDescription>
           </div>
-          <Badge className={statusColors[loan.status]}>
-            {statusLabels[loan.status]}
+          <Badge className={statusColors[loan.status] ?? 'bg-gray-100 text-gray-800 border-gray-300'}>
+            {statusLabels[loan.status] ?? loan.status}
           </Badge>
         </div>
       </CardHeader>
@@ -125,7 +124,19 @@ export function LoanCard({ loan, currentUserId, onApprove, onReject, onReturn, s
             )}
 
             {/* Acciones para el prestatario (borrower) */}
-            {isBorrower && isActive && (
+            {isBorrower && isPending && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onCancel?.(loan.id)}
+                className="flex-1"
+              >
+                Cancelar solicitud
+              </Button>
+            )}
+
+            {/* Acciones para el prestador una vez activo */}
+            {isLender && isActive && (
               <Button
                 size="sm"
                 onClick={() => onReturn?.(loan.book_id)}
@@ -136,7 +147,7 @@ export function LoanCard({ loan, currentUserId, onApprove, onReject, onReturn, s
             )}
 
             {/* Chat disponible para ambos */}
-            {(isActive || isPending) && (
+            {(isLender || isBorrower) && (isActive || isPending) && (
               <Link href={`/loans/${loan.id}`} className="flex-1">
                 <Button size="sm" variant="outline" className="w-full">
                   <MessageCircle className="h-4 w-4 mr-2" />

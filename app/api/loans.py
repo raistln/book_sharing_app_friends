@@ -40,6 +40,9 @@ class LoanResponse(BaseModel):
     approved_at: Optional[datetime] = Field(None, description="When the loan was approved")
     returned_at: Optional[datetime] = Field(None, description="When the book was returned")
     due_date: Optional[datetime] = Field(None, description="Expected return date")
+    book_id: UUID = Field(..., description="ID of the related book")
+    borrower_id: UUID = Field(..., description="ID of the borrower user")
+    lender_id: UUID = Field(..., description="ID of the lender user")
     book: Dict[str, Any] = Field(..., description="Book details")
     borrower: Optional[Dict[str, str]] = Field(None, description="Borrower details")
     lender: Optional[Dict[str, str]] = Field(None, description="Lender details")
@@ -500,7 +503,10 @@ def set_due_date(
                             "lender": {
                                 "id": "423e4567-e89b-12d3-a456-426614174000",
                                 "username": "lender_user"
-                            }
+                            },
+                            "book_id": "223e4567-e89b-12d3-a456-426614174000",
+                            "borrower_id": "323e4567-e89b-12d3-a456-426614174000",
+                            "lender_id": "423e4567-e89b-12d3-a456-426614174000"
                         }
                     ]
                 }
@@ -555,6 +561,14 @@ def list_user_loans(
     return [
         {
             "id": str(loan.id),
+            "status": loan.status.value,
+            "requested_at": loan.requested_at,
+            "approved_at": loan.approved_at,
+            "returned_at": loan.returned_at,
+            "due_date": loan.due_date,
+            "book_id": loan.book_id,
+            "borrower_id": loan.borrower_id,
+            "lender_id": loan.lender_id,
             "book": {
                 "id": str(loan.book.id),
                 "title": loan.book.title,
@@ -567,12 +581,7 @@ def list_user_loans(
             "lender": {
                 "id": str(loan.lender.id),
                 "username": loan.lender.username
-            } if loan.lender else None,
-            "status": loan.status.name,
-            "requested_at": loan.requested_at,
-            "approved_at": loan.approved_at,
-            "returned_at": loan.returned_at,
-            "due_date": loan.due_date
+            } if loan.lender else None
         }
         for loan in loans
     ]

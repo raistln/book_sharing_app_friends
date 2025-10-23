@@ -13,13 +13,6 @@ from sqlalchemy import and_
 from app.models.book import Book as BookModel, BookStatus
 from app.models.loan import Loan as LoanModel, LoanStatus
 from app.models.user import User
-from app.services.notification_service import (
-    create_loan_request_notification,
-    create_loan_approved_notification,
-    create_loan_rejected_notification,
-    create_due_date_reminder_notification,
-    create_overdue_notification
-)
 from app.services.email_service import email_service
 
 
@@ -48,6 +41,9 @@ class LoanService:
             )
         ).first()
         if existing:
+            if existing.status == LoanStatus.requested:
+                logger.info("request_loan returning existing pending loan loan_id=%s", str(existing.id))
+                return existing
             return None
         loan = LoanModel(
             book_id=book.id,
@@ -66,15 +62,7 @@ class LoanService:
             lender = self.db.query(User).filter(User.id == book.owner_id).first()
             
             if borrower and lender:
-                # Crear notificación en la app
-                create_loan_request_notification(
-                    db=self.db,
-                    lender_id=book.owner_id,
-                    borrower_name=borrower.username,
-                    book_title=book.title,
-                    loan_id=loan.id
-                )
-                logger.info("Notification created for loan request: loan_id=%s", str(loan.id))
+                logger.info("Loan request notifications disabled; skipping for loan_id=%s", str(loan.id))
                 
                 # Enviar email si está configurado
                 if email_service.is_configured() and lender.email:
@@ -88,7 +76,7 @@ class LoanService:
                     )
                     logger.info("Email sent for loan request: loan_id=%s", str(loan.id))
         except Exception as e:
-            logger.error("Failed to create loan request notification: %s", str(e))
+            logger.error("Failed to process loan request hooks: %s", str(e))
         
         return loan
 
@@ -120,15 +108,7 @@ class LoanService:
             borrower = self.db.query(User).filter(User.id == loan.borrower_id).first()
             
             if lender and borrower:
-                # Crear notificación en la app
-                create_loan_approved_notification(
-                    db=self.db,
-                    borrower_id=loan.borrower_id,
-                    lender_name=lender.username,
-                    book_title=book.title,
-                    loan_id=loan.id
-                )
-                logger.info("Notification created for loan approval: loan_id=%s", str(loan.id))
+                logger.info("Loan approval notifications disabled; skipping for loan_id=%s", str(loan.id))
                 
                 # Enviar email si está configurado
                 if email_service.is_configured() and borrower.email:
@@ -142,7 +122,7 @@ class LoanService:
                     )
                     logger.info("Email sent for loan approval: loan_id=%s", str(loan.id))
         except Exception as e:
-            logger.error("Failed to create loan approval notification: %s", str(e))
+            logger.error("Failed to process loan approval hooks: %s", str(e))
         
         return loan
 
@@ -160,16 +140,9 @@ class LoanService:
             lender = self.db.query(User).filter(User.id == lender_id).first()
             book = self.db.query(BookModel).filter(BookModel.id == loan.book_id).first()
             if lender and book:
-                create_loan_rejected_notification(
-                    db=self.db,
-                    borrower_id=loan.borrower_id,
-                    lender_name=lender.username,
-                    book_title=book.title,
-                    loan_id=loan.id
-                )
-                logger.info("Notification created for loan rejection: loan_id=%s", str(loan.id))
+                logger.info("Loan rejection notifications disabled; skipping for loan_id=%s", str(loan.id))
         except Exception as e:
-            logger.error("Failed to create loan rejection notification: %s", str(e))
+            logger.error("Failed to process loan rejection hooks: %s", str(e))
         
         # Rechazo: eliminamos la solicitud para no requerir nuevo estado en enum
         self.db.delete(loan)
