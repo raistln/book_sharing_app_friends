@@ -109,3 +109,135 @@ def get_review(review_id: UUID, db: Session = Depends(get_current_db)):
     enriched_review.group_name = review.group.name if review.group else None
 
     return enriched_review
+
+
+@router.post("/", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
+def create_review(
+    review_data: ReviewCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_current_db)
+):
+    """Crear una nueva reseña para un libro."""
+    logger.info("Creating review for book_id=%s by user_id=%s", review_data.book_id, current_user.id)
+
+    # Verificar que el libro existe
+    book = db.query(Book).filter(Book.id == review_data.book_id).first()
+    if not book:
+        logger.warning("Book not found: id=%s", review_data.book_id)
+        raise HTTPException(status_code=404, detail="Libro no encontrado")
+
+    # Verificar que el usuario no haya reseñado ya este libro
+    existing_review = db.query(ReviewModel).filter(
+        and_(
+            ReviewModel.book_id == review_data.book_id,
+            ReviewModel.user_id == current_user.id
+        )
+    ).first()
+
+    if existing_review:
+        logger.warning("User already reviewed this book: book_id=%s, user_id=%s", review_data.book_id, current_user.id)
+        raise HTTPException(
+            status_code=400,
+            detail="Ya has reseñado este libro. Puedes actualizar tu reseña existente."
+        )
+
+    # Crear la reseña
+    new_review = ReviewModel(
+        rating=review_data.rating,
+        comment=review_data.comment,
+        book_id=review_data.book_id,
+        user_id=current_user.id,
+        group_id=review_data.group_id
+    )
+
+    db.add(new_review)
+    db.commit()
+    db.refresh(new_review)
+
+    logger.info("Review created successfully: id=%s", new_review.id)
+
+    # Enriquecer respuesta
+    enriched_review = ReviewResponse.model_validate(new_review)
+    enriched_review.book_title = book.title
+    enriched_review.user_username = current_user.username
+    if review_data.group_id:
+        from app.models.group import Group
+        group = db.query(Group).filter(Group.id == review_data.group_id).first()
+        if group:
+            enriched_review.group_name = group.name
+
+    return enriched_review
+
+
+@router.put("/{review_id}", response_model=ReviewResponse)
+def update_review(
+    review_id: UUID,
+    review_data: ReviewUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_current_db)
+):
+    """Actualizar una reseña existente."""
+    logger.info("Updating review: id=%s by user_id=%s", review_id, current_user.id)
+
+    review = db.query(ReviewModel).filter(ReviewModel.id == review_id).first()
+
+    if not review:
+        logger.warning("Review not found: id=%s", review_id)
+        raise HTTPException(status_code=404, detail="Reseña no encontrada")
+
+    # Verificar que el usuario es el autor de la reseña
+    if review.user_id != current_user.id:
+        logger.warning("User not authorized to update review: review_id=%s, user_id=%s", review_id, current_user.id)
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permiso para actualizar esta reseña"
+        )
+
+    # Actualizar campos
+    if review_data.rating is not None:
+        review.rating = review_data.rating
+    if review_data.comment is not None:
+        review.comment = review_data.comment
+
+    db.commit()
+    db.refresh(review)
+
+    logger.info("Review updated successfully: id=%s", review_id)
+
+    # Enriquecer respuesta
+    enriched_review = ReviewResponse.model_validate(review)
+    enriched_review.book_title = review.book.title if review.book else None
+    enriched_review.user_username = current_user.username
+    enriched_review.group_name = review.group.name if review.group else None
+
+    return enriched_review
+
+
+@router.delete("/{review_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_review(
+    review_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_current_db)
+):
+    """Eliminar una reseña."""
+    logger.info("Deleting review: id=%s by user_id=%s", review_id, current_user.id)
+
+    review = db.query(ReviewModel).filter(ReviewModel.id == review_id).first()
+
+    if not review:
+        logger.warning("Review not found: id=%s", review_id)
+        raise HTTPException(status_code=404, detail="Reseña no encontrada")
+
+    # Verificar que el usuario es el autor de la reseña
+    if review.user_id != current_user.id:
+        logger.warning("User not authorized to delete review: review_id=%s, user_id=%s", review_id, current_user.id)
+        raise HTTPException(
+            status_code=403,
+            detail="No tienes permiso para eliminar esta reseña"
+        )
+
+    db.delete(review)
+    db.commit()
+
+    logger.info("Review deleted successfully: id=%s", review_id)
+    return None

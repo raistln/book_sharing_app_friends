@@ -113,11 +113,11 @@ export function generateLoansPDFHTML(loans: Loan[]): string {
           font-size: 12px;
           font-weight: bold;
         }
-        .status-PENDING { background-color: #fef3c7; color: #92400e; }
-        .status-APPROVED { background-color: #d1fae5; color: #065f46; }
-        .status-ACTIVE { background-color: #dbeafe; color: #1e40af; }
-        .status-RETURNED { background-color: #f3f4f6; color: #374151; }
-        .status-REJECTED { background-color: #fee2e2; color: #991b1b; }
+        .status-requested { background-color: #fef3c7; color: #92400e; }
+        .status-approved { background-color: #d1fae5; color: #065f46; }
+        .status-active { background-color: #dbeafe; color: #1e40af; }
+        .status-returned { background-color: #f3f4f6; color: #374151; }
+        .status-cancelled { background-color: #f3f4f6; color: #374151; }
         .footer {
           margin-top: 30px;
           text-align: center;
@@ -196,14 +196,14 @@ export function exportLoansToPDF(loans: Loan[]): void {
 export function generateLoanStats(loans: Loan[]) {
   return {
     total: loans.length,
-    pending: loans.filter((l) => l.status === 'PENDING').length,
-    approved: loans.filter((l) => l.status === 'APPROVED').length,
-    active: loans.filter((l) => l.status === 'ACTIVE').length,
-    returned: loans.filter((l) => l.status === 'RETURNED').length,
-    rejected: loans.filter((l) => l.status === 'REJECTED').length,
+    pending: loans.filter((l) => l.status === 'requested').length,
+    approved: loans.filter((l) => l.status === 'approved').length,
+    active: loans.filter((l) => l.status === 'active').length,
+    returned: loans.filter((l) => l.status === 'returned').length,
+    cancelled: loans.filter((l) => l.status === 'cancelled').length,
     overdue: loans.filter(
       (l) =>
-        (l.status === 'APPROVED' || l.status === 'ACTIVE') &&
+        (l.status === 'approved' || l.status === 'active') &&
         l.due_date &&
         new Date(l.due_date) < new Date()
     ).length,

@@ -29,10 +29,20 @@ export interface ScanResult {
 export function useSearchBooks() {
   return useMutation({
     mutationFn: async ({ query, limit = 5 }: { query: string; limit?: number }) => {
-      const response = await apiClient.get<BookSearchResult[]>('/search/books', {
-        params: { q: query, limit },
+      const response = await apiClient.get<any>('/search/books', {
+        params: { q: query, per_page: limit },
       });
-      return response.data;
+      console.log('API Response:', response.data);
+      
+      // El endpoint /search/books devuelve un ARRAY directo
+      // El endpoint /discover/books devuelve un objeto paginado { items: [], ... }
+      // Manejamos ambos casos:
+      if (Array.isArray(response.data)) {
+        return response.data;  // Array directo
+      } else if (response.data?.items) {
+        return response.data.items;  // Objeto paginado
+      }
+      return [];  // Fallback
     },
     onError: (error: any) => {
       toast({
@@ -75,10 +85,17 @@ export function useAutoSearch(query: string, enabled: boolean = true) {
     queryFn: async () => {
       if (!query || query.length < 3) return [];
       
-      const response = await apiClient.get<BookSearchResult[]>('/search/books', {
-        params: { q: query, limit: 5 },
+      const response = await apiClient.get<any>('/search/books', {
+        params: { q: query, per_page: 5 },
       });
-      return response.data;
+      
+      // Manejar tanto arrays directos como objetos paginados
+      if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data?.items) {
+        return response.data.items;
+      }
+      return [];
     },
     enabled: enabled && query.length >= 3,
     staleTime: 30000, // 30 segundos

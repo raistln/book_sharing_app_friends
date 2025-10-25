@@ -90,7 +90,9 @@ class GroupSummary(BaseModel):
 
 class InvitationCreate(BaseModel):
     """Schema para crear una invitación a un grupo."""
-    email: str = Field(..., description="Correo electrónico del usuario a invitar")
+    email: Optional[str] = Field(None, description="Correo electrónico del usuario a invitar")
+    username: Optional[str] = Field(None, description="Nombre de usuario en la plataforma")
+    message: Optional[str] = Field(None, description="Mensaje opcional para la invitación", max_length=500)
     role: GroupRole = Field(default=GroupRole.MEMBER, description="Rol que tendrá el usuario en el grupo")
 
     model_config = ConfigDict(from_attributes=True)

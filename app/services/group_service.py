@@ -11,6 +11,7 @@ import uuid
 from app.models.group import Group, GroupMember, GroupRole
 from app.models.invitation import Invitation
 from app.models.user import User
+
 from app.schemas.group import GroupCreate, GroupUpdate, GroupMemberCreate, GroupMemberUpdate
 from app.schemas.invitation import InvitationCreate
 from app.utils.security import hash_password
@@ -149,6 +150,52 @@ class GroupService:
         logger.info("remove_member success group_id=%s member_id=%s", str(group_id), str(member_id))
         return True
 
+    def leave_group(self, group_id: uuid.UUID, user_id: uuid.UUID) -> bool:
+        """Permite a un miembro salir voluntariamente de un grupo."""
+        logger.info("leave_group group_id=%s user_id=%s", str(group_id), str(user_id))
+        
+        # Verificar que el grupo existe
+        group = self.db.query(Group).filter(Group.id == group_id).first()
+        if not group:
+            logger.warning("leave_group failed: group not found")
+            return False
+        
+        # No permitir que el creador salga del grupo
+        if group.created_by == user_id:
+            logger.warning("leave_group failed: creator cannot leave")
+            return False
+        
+        # Obtener el miembro
+        member = self.db.query(GroupMember).filter(
+            and_(
+                GroupMember.group_id == group_id,
+                GroupMember.user_id == user_id
+            )
+        ).first()
+        
+        if not member:
+            logger.warning("leave_group failed: user is not a member")
+            return False
+        
+        # Si es admin, verificar que no sea el último admin
+        if member.role == GroupRole.ADMIN:
+            admin_count = self.db.query(GroupMember).filter(
+                and_(
+                    GroupMember.group_id == group_id,
+                    GroupMember.role == GroupRole.ADMIN
+                )
+            ).count()
+            
+            if admin_count <= 1:
+                logger.warning("leave_group failed: last admin cannot leave")
+                return False
+        
+        # Eliminar el miembro
+        self.db.delete(member)
+        self.db.commit()
+        logger.info("leave_group success group_id=%s user_id=%s", str(group_id), str(user_id))
+        return True
+
     def update_member_role(self, group_id: uuid.UUID, user_id: uuid.UUID, member_id: uuid.UUID, role_data: GroupMemberUpdate) -> Optional[GroupMember]:
         """Actualizar el rol de un miembro (solo admins)."""
         logger.info("update_member_role group_id=%s actor_id=%s member_id=%s new_role=%s", str(group_id), str(user_id), str(member_id), role_data.role)
@@ -245,17 +292,9 @@ class GroupService:
         self.db.add(invitation)
         self.db.commit()
         self.db.refresh(invitation)
-        logger.info("create_invitation success invitation_id=%s email=%s", str(invitation.id), invitation.email)
+        logger.info("create_invitation success invitation_id=%s email=%s code=%s", str(invitation.id), invitation.email, invitation.code)
+        
         return invitation
-
-    def get_group_invitations(self, group_id: uuid.UUID, user_id: uuid.UUID) -> List[Invitation]:
-        """Obtener invitaciones de un grupo (solo admins)."""
-        if not self.is_group_admin(group_id, user_id):
-            return []
-
-        return self.db.query(Invitation).filter(
-            Invitation.group_id == group_id
-        ).all()
 
     def get_user_invitations(self, email: str) -> List[Invitation]:
         """Obtener invitaciones pendientes de un usuario por email."""
@@ -266,6 +305,21 @@ class GroupService:
                 Invitation.expires_at > datetime.now(timezone.utc)
             )
         ).all()
+
+    def get_group_invitations(self, group_id: uuid.UUID, user_id: uuid.UUID) -> Optional[List[Invitation]]:
+        """Obtener todas las invitaciones de un grupo (solo admins)."""
+        logger.info("get_group_invitations group_id=%s actor_id=%s", str(group_id), str(user_id))
+
+        if not self.is_group_admin(group_id, user_id):
+            logger.warning("get_group_invitations denied: user is not admin")
+            return None
+
+        invitations = self.db.query(Invitation).filter(
+            Invitation.group_id == group_id
+        ).order_by(Invitation.created_at.desc()).all()
+
+        logger.info("get_group_invitations success group_id=%s count=%s", str(group_id), len(invitations))
+        return invitations
 
     def cancel_invitation(self, group_id: uuid.UUID, invitation_id: uuid.UUID, user_id: uuid.UUID) -> bool:
         """Cancelar una invitación (solo admins)."""

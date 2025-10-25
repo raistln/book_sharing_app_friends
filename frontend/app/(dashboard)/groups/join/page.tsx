@@ -53,8 +53,7 @@ export default function JoinGroupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light">
-      <div className="container mx-auto px-4 py-12">
+    <main className="container mx-auto px-4 py-12">
         {/* Back Button */}
         <Link href="/groups">
           <Button variant="ghost" className="mb-6">
@@ -194,7 +193,6 @@ export default function JoinGroupPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </div>
+    </main>
   );
 }

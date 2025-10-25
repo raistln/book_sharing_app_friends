@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { useUserLoans, useApproveLoan, useRejectLoan, useReturnBook } from '@/lib/hooks/use-loans';
+import { useUserLoans, useApproveLoan, useRejectLoan, useReturnBook, useCancelLoan } from '@/lib/hooks/use-loans';
 import { LoanCard } from './loan-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,6 +24,7 @@ export function LoanList({ userId, showTabs = true }: LoanListProps) {
   const approveLoan = useApproveLoan();
   const rejectLoan = useRejectLoan();
   const returnBook = useReturnBook();
+  const cancelLoan = useCancelLoan();
 
   const handleApprove = async (loanId: string) => {
     await approveLoan.mutateAsync({
@@ -46,12 +47,27 @@ export function LoanList({ userId, showTabs = true }: LoanListProps) {
     refetch();
   };
 
-  // Filtrar préstamos por rol
-  const borrowedLoans = loans.filter((loan) => loan.borrower_id === currentUserId);
-  const lentLoans = loans.filter((loan) => loan.lender_id === currentUserId);
-  const pendingLoans = loans.filter((loan) => loan.status === 'PENDING');
-  const activeLoans = loans.filter(
-    (loan) => loan.status === 'APPROVED' || loan.status === 'ACTIVE'
+  const handleCancel = async (loanId: string) => {
+    await cancelLoan.mutateAsync({
+      loan_id: loanId,
+      borrower_id: currentUserId,
+    });
+    refetch();
+  };
+
+  const visibleLoans = loans.filter(
+    (loan) => loan.status !== 'cancelled' && loan.status !== 'returned'
+  );
+
+  // Listas principales
+  const pendingBorrowedLoans = visibleLoans.filter(
+    (loan) => loan.status === 'requested' && loan.borrower_id === currentUserId
+  );
+  const pendingLentLoans = visibleLoans.filter(
+    (loan) => loan.status === 'requested' && loan.lender_id === currentUserId
+  );
+  const activeLoans = visibleLoans.filter(
+    (loan) => loan.status === 'approved' || loan.status === 'active'
   );
 
   if (isLoading) {
@@ -65,7 +81,7 @@ export function LoanList({ userId, showTabs = true }: LoanListProps) {
   if (!showTabs) {
     return (
       <div className="space-y-4">
-        {loans.length === 0 ? (
+        {visibleLoans.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <BookOpen className="h-12 w-12 text-storybook-ink-light opacity-30 mb-3" />
@@ -73,7 +89,7 @@ export function LoanList({ userId, showTabs = true }: LoanListProps) {
             </CardContent>
           </Card>
         ) : (
-          loans.map((loan) => (
+          visibleLoans.map((loan) => (
             <LoanCard
               key={loan.id}
               loan={loan}
@@ -81,6 +97,7 @@ export function LoanList({ userId, showTabs = true }: LoanListProps) {
               onApprove={handleApprove}
               onReject={handleReject}
               onReturn={handleReturn}
+              onCancel={handleCancel}
             />
           ))
         )}
@@ -89,32 +106,29 @@ export function LoanList({ userId, showTabs = true }: LoanListProps) {
   }
 
   return (
-    <Tabs defaultValue="all" className="w-full">
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="all">
-          Todos ({loans.length})
+    <Tabs defaultValue="pending-borrowed" className="w-full">
+      <TabsList className="grid w-full grid-cols-3">
+        <TabsTrigger value="pending-borrowed">
+          Pendientes (solicitados) ({pendingBorrowedLoans.length})
         </TabsTrigger>
-        <TabsTrigger value="pending">
-          Pendientes ({pendingLoans.length})
+        <TabsTrigger value="pending-lent">
+          Pendientes (por aprobar) ({pendingLentLoans.length})
         </TabsTrigger>
         <TabsTrigger value="active">
           Activos ({activeLoans.length})
         </TabsTrigger>
-        <TabsTrigger value="borrowed">
-          Prestados ({borrowedLoans.length})
-        </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="all" className="space-y-4 mt-4">
-        {loans.length === 0 ? (
+      <TabsContent value="pending-borrowed" className="space-y-4 mt-4">
+        {pendingBorrowedLoans.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <BookOpen className="h-12 w-12 text-storybook-ink-light opacity-30 mb-3" />
-              <p className="text-storybook-ink-light">No tienes préstamos aún</p>
+              <Package className="h-12 w-12 text-storybook-ink-light opacity-30 mb-3" />
+              <p className="text-storybook-ink-light">No has solicitado libros pendientes</p>
             </CardContent>
           </Card>
         ) : (
-          loans.map((loan) => (
+          pendingBorrowedLoans.map((loan) => (
             <LoanCard
               key={loan.id}
               loan={loan}
@@ -122,21 +136,22 @@ export function LoanList({ userId, showTabs = true }: LoanListProps) {
               onApprove={handleApprove}
               onReject={handleReject}
               onReturn={handleReturn}
+              onCancel={handleCancel}
             />
           ))
         )}
       </TabsContent>
 
-      <TabsContent value="pending" className="space-y-4 mt-4">
-        {pendingLoans.length === 0 ? (
+      <TabsContent value="pending-lent" className="space-y-4 mt-4">
+        {pendingLentLoans.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Package className="h-12 w-12 text-storybook-ink-light opacity-30 mb-3" />
-              <p className="text-storybook-ink-light">No hay préstamos pendientes</p>
+              <p className="text-storybook-ink-light">No tienes solicitudes por aprobar</p>
             </CardContent>
           </Card>
         ) : (
-          pendingLoans.map((loan) => (
+          pendingLentLoans.map((loan) => (
             <LoanCard
               key={loan.id}
               loan={loan}
@@ -144,6 +159,7 @@ export function LoanList({ userId, showTabs = true }: LoanListProps) {
               onApprove={handleApprove}
               onReject={handleReject}
               onReturn={handleReturn}
+              onCancel={handleCancel}
             />
           ))
         )}
@@ -166,28 +182,7 @@ export function LoanList({ userId, showTabs = true }: LoanListProps) {
               onApprove={handleApprove}
               onReject={handleReject}
               onReturn={handleReturn}
-            />
-          ))
-        )}
-      </TabsContent>
-
-      <TabsContent value="borrowed" className="space-y-4 mt-4">
-        {borrowedLoans.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <BookOpen className="h-12 w-12 text-storybook-ink-light opacity-30 mb-3" />
-              <p className="text-storybook-ink-light">No has prestado libros</p>
-            </CardContent>
-          </Card>
-        ) : (
-          borrowedLoans.map((loan) => (
-            <LoanCard
-              key={loan.id}
-              loan={loan}
-              currentUserId={currentUserId}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onReturn={handleReturn}
+              onCancel={handleCancel}
             />
           ))
         )}

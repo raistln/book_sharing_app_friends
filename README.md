@@ -4,26 +4,17 @@ Una aplicación completa y lista para producción para compartir libros entre am
 
 ## 🎯 Estado del Proyecto
 
-**✅ PROYECTO COMPLETADO** - Aplicación completamente funcional, testeada y lista para producción con todas las características avanzadas implementadas.
+**En desarrollo activo** – La aplicación cubre el flujo principal de compartir libros (autenticación, catálogo, préstamos, grupos e invitaciones), las reseñas ya están operativas y el backend de notificaciones está listo. El chat funciona con polling pero requiere optimizaciones, la interfaz de notificaciones y la suite de tests automatizados todavía están en evolución.
 
-### Características Implementadas:
-- [x] **Sistema de autenticación JWT completo** con registro, login seguro y gestión de tokens
-- [x] **Gestión completa de libros** con CRUD, validaciones avanzadas y soft delete
-- [x] **Sistema de préstamos avanzado** con solicitudes, aprobaciones y seguimiento histórico
-- [x] **Grupos de amigos** con organización en comunidades para compartir libros
-- [x] **Sistema de chat integrado** para comunicación entre usuarios
-- [x] **Sistema de invitaciones** con códigos únicos para unirse a grupos
-- [x] **OCR inteligente** para extracción de información desde fotos de libros
-- [x] **Escaneo de códigos de barras** para identificación automática de libros
-- [x] **Búsqueda externa avanzada** con integración OpenLibrary y Google Books
-- [x] **Sistema de caché Redis** para optimización de búsquedas repetidas
-- [x] **Filtros y búsqueda avanzada** por tipo, género, estado y disponibilidad
-- [x] **Rate limiting** con Redis para protección contra ataques
-- [x] **Logging estructurado** con rotación y monitoreo de eventos de seguridad
-- [x] **Health checks** completos para monitoreo de servicios
-- [x] **Testing comprehensivo** con +95% cobertura de código
-- [x] **Seguridad avanzada** con validación de entrada y prevención de ataques
-- [x] **Deployment configuration** para múltiples plataformas
+### Progreso actual
+- **✅ Autenticación y perfiles**: Registro/login con JWT, gestión de usuarios y seguridad básica.
+- **✅ Libros y catálogo**: CRUD completo, filtros y búsqueda interna entre amigos y grupos.
+- **✅ Préstamos avanzados**: Solicitudes, aprobaciones, cancelaciones, devoluciones y exportaciones.
+- **✅ Grupos e invitaciones**: Gestión de comunidades, roles y códigos de invitación.
+- **✅ Reseñas**: Calificaciones 1-5, estadísticas y gestión por usuario.
+- **🟡 Chat por préstamo (polling)**: Disponible con REST; pendiente optimizar incrementalidad y UX.
+- **🟡 Notificaciones**: Backend operativo (recordatorios, eventos de préstamo); UI y emails opcionales aún por integrar por completo.
+- **🟡 Testing automatizado**: Suite inicial en `tests/` activa; falta ampliar cobertura y documentar resultados actuales.
 
 ## 🚀 Características
 
@@ -243,6 +234,12 @@ book_sharing_app_friends/
    poetry run alembic upgrade head
    ```
 
+   **💡 Para resetear la base de datos** (útil para pruebas):
+   ```bash
+   poetry run python reset_database.py
+   # Escribe 'SI' para confirmar
+   ```
+
 6. **Ejecutar la aplicación**
    ```bash
    poetry run python main.py
@@ -370,6 +367,12 @@ docker-compose -f docker-compose.prod.yml up -d
 - [Redis Documentation](https://redis.io/documentation)
 
 ---
+## 👨‍💻 Autor & Contacto
+
+**Nombre:** Samuel Martín 
+**Email:** [samumarfon@gmail.com](samumarfon@gmail.com) 
+**GitHub:** [@raistln](https://github.com/raistln)  
+**LinkedIn:** [Samuel Martín](https://www.linkedin.com/in/samuel-mart%C3%ADn-fonseca-74014b17/)  
 
 **¡Proyecto completamente funcional y listo para producción! 🚀**
 

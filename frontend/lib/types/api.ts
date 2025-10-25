@@ -84,7 +84,7 @@ export interface Loan {
   borrower?: User;
   lender_id: string;
   lender?: User;
-  status: 'pending' | 'active' | 'returned' | 'cancelled';
+  status: 'requested' | 'approved' | 'active' | 'returned' | 'cancelled';
   start_date?: string;
   due_date?: string;
   return_date?: string;

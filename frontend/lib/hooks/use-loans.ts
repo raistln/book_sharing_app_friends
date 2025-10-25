@@ -8,6 +8,7 @@ import type {
   ReturnBookRequest,
   SetDueDateRequest,
   LoanFilters,
+  CancelLoanRequest,
 } from '@/lib/types/loan';
 
 // Hook para obtener préstamos del usuario
@@ -190,18 +191,48 @@ export function useSetDueDate() {
   });
 }
 
+// Hook para cancelar préstamo
+export function useCancelLoan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CancelLoanRequest) => loansApi.cancelLoan(data),
+    onSuccess: (_response, variables) => {
+      toast({
+        title: 'Préstamo cancelado',
+        description: 'El préstamo ha sido cancelado.',
+      });
+      
+      // Invalidar queries relacionadas
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      queryClient.invalidateQueries({ queryKey: ['loan', variables.loan_id] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error al cancelar préstamo',
+        description: error.response?.data?.detail || 'No se pudo cancelar el préstamo',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
 // Hook para obtener estadísticas de préstamos
 export function useLoanStats(userId?: string) {
-  const { loans, isLoading } = useUserLoans(userId);
+const { loans, isLoading } = useUserLoans(userId);
 
-  const stats = {
-    total: loans.length,
-    pending: loans.filter((l) => l.status === 'PENDING').length,
-    active: loans.filter((l) => l.status === 'APPROVED' || l.status === 'ACTIVE').length,
-    completed: loans.filter((l) => l.status === 'RETURNED').length,
-    as_borrower: userId ? loans.filter((l) => l.borrower_id === userId).length : 0,
-    as_lender: userId ? loans.filter((l) => l.lender_id === userId).length : 0,
-  };
+const pendingLoans = loans.filter((loan) => loan.status === 'requested');
+const activeLoans = loans.filter(
+(loan) => loan.status === 'approved' || loan.status === 'active'
+);
+const stats = {
+total: loans.length,
+pending: pendingLoans.length,
+active: activeLoans.length,
+completed: loans.filter((l) => l.status === 'returned').length,
+as_borrower: userId ? loans.filter((l) => l.borrower_id === userId).length : 0,
+as_lender: userId ? loans.filter((l) => l.lender_id === userId).length : 0,
+};
 
-  return { stats, isLoading };
+return { stats, isLoading };
 }

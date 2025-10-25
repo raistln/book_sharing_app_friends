@@ -7,7 +7,6 @@ import Image from 'next/image';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useMyBooks, useDeleteBook } from '@/lib/hooks/use-books';
 import { booksApi } from '@/lib/api/books';
-import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -62,12 +61,7 @@ export default function BooksPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light">
-      {/* Header */}
-      <Header subtitle={`${user.username}'s Library`} /> 
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
+    <main className="container mx-auto px-4 py-12">
         {/* Header Section */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -232,7 +226,6 @@ export default function BooksPage() {
             )}
           </>
         )}
-      </main>
-    </div>
+    </main>
   );
 }

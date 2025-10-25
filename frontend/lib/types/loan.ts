@@ -1,5 +1,5 @@
 // Estados del préstamo
-export type LoanStatus = 'PENDING' | 'APPROVED' | 'ACTIVE' | 'RETURNED' | 'REJECTED' | 'CANCELLED';
+export type LoanStatus = 'requested' | 'approved' | 'active' | 'returned' | 'cancelled';
 
 // Usuario básico (para préstamos)
 export interface LoanUser {
@@ -58,6 +58,12 @@ export interface ReturnBookRequest {
   book_id: string;
 }
 
+// Cancelar préstamo
+export interface CancelLoanRequest {
+  loan_id: string;
+  borrower_id: string;
+}
+
 // Establecer fecha de devolución
 export interface SetDueDateRequest {
   loan_id: string;
@@ -86,6 +92,12 @@ export interface RejectLoanResponse {
 
 // Respuesta de devolución
 export interface ReturnBookResponse {
+  success: boolean;
+  message: string;
+}
+
+// Respuesta de cancelación
+export interface CancelLoanResponse {
   success: boolean;
   message: string;
 }

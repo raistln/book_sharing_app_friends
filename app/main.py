@@ -161,7 +161,7 @@ app.include_router(users_router)
 app.include_router(reviews_router, prefix="/reviews", tags=["reviews"])
 app.include_router(books_router, prefix="/books", tags=["books"])
 app.include_router(loans_router)
-# app.include_router(search_router)  # DESACTIVADO: Usar search_enhanced_router en su lugar
+app.include_router(search_router)  # Búsqueda en APIs externas (OpenLibrary, Google Books) para AGREGAR libros
 app.include_router(scan_router)
 app.include_router(groups_router)
 app.include_router(group_books_router)
@@ -169,7 +169,7 @@ app.include_router(chat_router)
 app.include_router(notifications_router)
 app.include_router(health_router)
 app.include_router(metadata_router)
-app.include_router(search_enhanced_router)  # Este tiene la lógica de grupos
+app.include_router(search_enhanced_router, prefix="/discover")  # Búsqueda en BD de libros de grupos - cambiado a /discover
 
 
 # Eventos de inicio y cierre

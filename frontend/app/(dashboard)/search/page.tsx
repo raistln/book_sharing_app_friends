@@ -8,7 +8,6 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useSearch, useGenres, useLanguages, useConditions } from '@/lib/hooks/use-search';
 import { useMyGroups } from '@/lib/hooks/use-groups';
 import { booksApi } from '@/lib/api/books';
-import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -95,12 +94,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light">
-      {/* Header */}
-      <Header subtitle="Discover Books" />
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
+    <main className="container mx-auto px-4 py-12">
         {/* Search Bar */}
         <Card className="mb-8">
           <CardContent className="pt-6">
@@ -428,7 +422,6 @@ export default function SearchPage() {
             )}
           </>
         )}
-      </main>
-    </div>
+    </main>
   );
 }
