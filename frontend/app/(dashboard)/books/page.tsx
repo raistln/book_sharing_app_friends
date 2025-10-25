@@ -41,7 +41,7 @@ export default function BooksPage() {
       <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-storybook-leather mx-auto mb-4" />
-          <p className="text-storybook-ink-light font-serif">Loading your library...</p>
+          <p className="text-storybook-ink-light font-serif">Cargando tu biblioteca...</p>
         </div>
       </div>
     );
@@ -60,46 +60,59 @@ export default function BooksPage() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'available':
+        return 'Disponible';
+      case 'borrowed':
+        return 'Prestado';
+      case 'reserved':
+        return 'Reservado';
+      default:
+        return status;
+    }
+  };
+
   return (
     <main className="container mx-auto px-4 py-12">
-        {/* Header Section */}
+        {/* Cabecera */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="font-display text-4xl font-bold text-storybook-leather mb-2">
-              My Books
+              Mis libros
             </h2>
             <p className="text-storybook-ink-light">
-              {pagination?.total || 0} {pagination?.total === 1 ? 'book' : 'books'} in your collection
+              {pagination?.total || 0} {pagination?.total === 1 ? 'libro' : 'libros'} en tu colección
             </p>
           </div>
           <Link href="/books/new">
             <Button className="shadow-book hover:shadow-book-hover">
               <Plus className="mr-2 h-4 w-4" />
-              Add Book
+              Añadir libro
             </Button>
           </Link>
         </div>
 
-        {/* Books Grid */}
+        {/* Mosaico de libros */}
         {isLoading ? (
           <div className="text-center py-20">
             <Loader2 className="h-12 w-12 animate-spin text-storybook-leather mx-auto mb-4" />
-            <p className="text-storybook-ink-light">Loading books...</p>
+            <p className="text-storybook-ink-light">Cargando libros...</p>
           </div>
         ) : books.length === 0 ? (
           <Card className="text-center py-20">
             <CardContent>
               <Book className="h-16 w-16 text-storybook-leather opacity-30 mx-auto mb-4" />
               <h3 className="font-display text-2xl font-bold text-storybook-leather mb-2">
-                No books yet
+                Aún no tienes libros
               </h3>
               <p className="text-storybook-ink-light mb-6">
-                Start building your library by adding your first book
+                Empieza a construir tu biblioteca añadiendo tu primer libro
               </p>
               <Link href="/books/new">
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Your First Book
+                  Añadir tu primer libro
                 </Button>
               </Link>
             </CardContent>
@@ -123,7 +136,7 @@ export default function BooksPage() {
                     />
                     <div className="absolute top-2 right-2">
                       <Badge variant={getStatusBadgeVariant(book.status)}>
-                        {book.status}
+                        {getStatusLabel(book.status)}
                       </Badge>
                     </div>
                   </div>
@@ -132,7 +145,7 @@ export default function BooksPage() {
                   <CardHeader>
                     <CardTitle className="line-clamp-2 min-h-[3.5rem]">{book.title}</CardTitle>
                     <CardDescription className="line-clamp-1">
-                      by {book.author || 'Unknown Author'}
+                      por {book.author || 'Autor desconocido'}
                     </CardDescription>
                   </CardHeader>
 
@@ -155,7 +168,7 @@ export default function BooksPage() {
                       <Link href={`/books/${book.id}`} className="flex-1">
                         <Button variant="outline" className="w-full" size="sm">
                           <Eye className="mr-2 h-3 w-3" />
-                          View
+                          Ver
                         </Button>
                       </Link>
                       <Link href={`/books/${book.id}/edit`}>

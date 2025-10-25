@@ -23,7 +23,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-storybook-leather mx-auto mb-4" />
-          <p className="text-storybook-ink-light font-serif">Loading your library...</p>
+          <p className="text-storybook-ink-light font-serif">Cargando tu biblioteca...</p>
         </div>
       </div>
     );
@@ -31,34 +31,34 @@ export default function DashboardPage() {
 
   return (
     <main className="container mx-auto px-4 py-12">
-        {/* Welcome Section */}
+        {/* Sección de bienvenida */}
         <div className="mb-12 text-center animate-fade-in-up">
           <div className="inline-block mb-4">
             <Sparkles className="h-12 w-12 text-storybook-gold animate-float mx-auto" />
           </div>
           <h2 className="font-display text-4xl font-bold text-storybook-leather mb-4">
-            Welcome to Your Library
+            Te damos la bienvenida a tu biblioteca
           </h2>
           <p className="text-xl text-storybook-ink-light max-w-2xl mx-auto">
-            Your magical reading journey starts here. Explore, share, and discover amazing books.
+            Tu viaje lector comienza aquí. Explora, comparte y descubre libros increíbles.
           </p>
         </div>
 
-        {/* Quick Actions */}
+        {/* Acciones rápidas */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           <Card className="hover:shadow-book-hover transition-all duration-300 cursor-pointer">
             <CardHeader>
               <div className="bg-storybook-gold/20 rounded-full w-12 h-12 flex items-center justify-center mb-4">
                 <Book className="h-6 w-6 text-storybook-leather" />
               </div>
-              <CardTitle>My Books</CardTitle>
+              <CardTitle>Mis libros</CardTitle>
               <CardDescription>
-                Manage your personal book collection
+                Gestiona tu colección personal de libros
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button className="w-full" onClick={() => router.push('/books')}>
-                View Books
+                Ver libros
               </Button>
             </CardContent>
           </Card>
@@ -68,14 +68,14 @@ export default function DashboardPage() {
               <div className="bg-storybook-gold/20 rounded-full w-12 h-12 flex items-center justify-center mb-4">
                 <Users className="h-6 w-6 text-storybook-leather" />
               </div>
-              <CardTitle>My Groups</CardTitle>
+              <CardTitle>Mis grupos</CardTitle>
               <CardDescription>
-                Connect and share with reading communities
+                Conecta y comparte con comunidades lectoras
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button className="w-full" onClick={() => router.push('/groups')}>
-                View Groups
+                Ver grupos
               </Button>
             </CardContent>
           </Card>
@@ -85,14 +85,14 @@ export default function DashboardPage() {
               <div className="bg-storybook-gold/20 rounded-full w-12 h-12 flex items-center justify-center mb-4">
                 <Search className="h-6 w-6 text-storybook-leather" />
               </div>
-              <CardTitle>Discover</CardTitle>
+              <CardTitle>Descubre</CardTitle>
               <CardDescription>
-                Find your next great read
+                Encuentra tu próxima gran lectura
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button className="w-full" onClick={() => router.push('/search')}>
-                Search Books
+                Buscar libros
               </Button>
             </CardContent>
           </Card>
@@ -102,54 +102,54 @@ export default function DashboardPage() {
               <div className="bg-storybook-gold/20 rounded-full w-12 h-12 flex items-center justify-center mb-4">
                 <BookOpen className="h-6 w-6 text-storybook-leather" />
               </div>
-              <CardTitle>My Loans</CardTitle>
+              <CardTitle>Mis préstamos</CardTitle>
               <CardDescription>
-                Manage your book loans and requests
+                Gestiona tus préstamos y solicitudes
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button className="w-full" onClick={() => router.push('/loans')}>
-                View Loans
+                Ver préstamos
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        {/* Stats Section */}
+        {/* Sección de estadísticas */}
         <Card className="bg-gradient-to-r from-storybook-leather to-storybook-leather-dark text-storybook-cream">
           <CardHeader>
-            <CardTitle className="text-storybook-gold">Your Reading Stats</CardTitle>
+            <CardTitle className="text-storybook-gold">Tus estadísticas de lectura</CardTitle>
             <CardDescription className="text-storybook-gold-light">
-              Track your reading journey
+              Sigue tu viaje lector
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-6 text-center">
               <div>
                 <p className="text-3xl font-display font-bold text-storybook-gold mb-2">0</p>
-                <p className="text-sm text-storybook-cream">Books Owned</p>
+                <p className="text-sm text-storybook-cream">Libros propios</p>
               </div>
               <div>
                 <p className="text-3xl font-display font-bold text-storybook-gold mb-2">0</p>
-                <p className="text-sm text-storybook-cream">Books Borrowed</p>
+                <p className="text-sm text-storybook-cream">Libros prestados</p>
               </div>
               <div>
                 <p className="text-3xl font-display font-bold text-storybook-gold mb-2">0</p>
-                <p className="text-sm text-storybook-cream">Books Shared</p>
+                <p className="text-sm text-storybook-cream">Libros compartidos</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Footer */}
+        {/* Pie de página */}
         <footer className="bg-storybook-leather text-storybook-cream mt-20 -mx-4 px-4">
           <div className="container mx-auto px-4 py-8">
             <div className="text-center">
               <p className="font-script text-xl mb-2">
-                "A reader lives a thousand lives before he dies"
+                «Un lector vive mil vidas antes de morir»
               </p>
               <p className="text-storybook-gold-light text-sm">
-                - George R.R. Martin
+                - George R. R. Martin
               </p>
             </div>
           </div>

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, BellOff, Check, CheckCheck, Filter, Loader2 } from 'lucide-react';
 import { formatRelativeTime, notificationConfig, groupNotificationsByDate } from '@/lib/utils/notifications';
-import type { NotificationType, NotificationPriority } from '@/lib/types/notification';
+import type { NotificationType } from '@/lib/types/notification';
 
 export default function NotificationsPage() {
   const { notifications, isLoading } = useNotifications();
@@ -22,6 +22,31 @@ export default function NotificationsPage() {
 
   const groupedNotifications = groupNotificationsByDate(filteredNotifications);
   const unreadCount = notifications.filter(n => !n.is_read).length;
+
+  const getTypeLabel = (type: NotificationType) => {
+    switch (type) {
+      case 'LOAN_REQUEST':
+        return 'Préstamo solicitado';
+      case 'LOAN_APPROVED':
+        return 'Préstamo aprobado';
+      case 'LOAN_REJECTED':
+        return 'Préstamo rechazado';
+      case 'LOAN_RETURNED':
+        return 'Libro devuelto';
+      case 'DUE_DATE_REMINDER':
+        return 'Recordatorio de devolución';
+      case 'OVERDUE':
+        return 'Préstamo vencido';
+      case 'NEW_MESSAGE':
+        return 'Mensaje recibido';
+      case 'GROUP_INVITATION':
+        return 'Invitación a grupo';
+      case 'GROUP_JOINED':
+        return 'Nuevo miembro en grupo';
+      default:
+        return type;
+    }
+  };
 
   const handleRequestPermission = async () => {
     await requestPermission();
@@ -164,7 +189,7 @@ export default function NotificationsPage() {
                                 {formatRelativeTime(notification.created_at)}
                               </span>
                               <Badge className={config.color} variant="outline">
-                                {notification.type.replace('_', ' ')}
+                                {getTypeLabel(notification.type)}
                               </Badge>
                             </div>
                           </div>

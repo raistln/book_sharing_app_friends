@@ -12,7 +12,7 @@ export default function GroupsPage() {
 
   return (
     <main className="container mx-auto px-4 py-12">
-        {/* Header Section */}
+        {/* Cabecera */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="font-display text-4xl font-bold text-storybook-leather mb-2">
@@ -38,14 +38,14 @@ export default function GroupsPage() {
           </div>
         </div>
 
-        {/* Loading State */}
+        {/* Estado de carga */}
         {isLoading && (
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-storybook-leather" />
           </div>
         )}
 
-        {/* Empty State */}
+        {/* Estado vacío */}
         {!isLoading && groups.length === 0 && (
           <Card className="text-center py-12">
             <CardContent>
@@ -66,7 +66,7 @@ export default function GroupsPage() {
           </Card>
         )}
 
-        {/* Groups Grid */}
+        {/* Listado de grupos */}
         {!isLoading && groups.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {groups.map((group) => (
@@ -83,7 +83,7 @@ export default function GroupsPage() {
                       {group.is_admin && (
                         <Badge variant="default" className="ml-2">
                           <Crown className="h-3 w-3 mr-1" />
-                          Admin
+                          Administrador
                         </Badge>
                       )}
                     </div>
@@ -102,7 +102,7 @@ export default function GroupsPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        <span>{new Date(group.created_at).toLocaleDateString()}</span>
+                        <span>{new Date(group.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                       </div>
                     </div>
                   </CardContent>

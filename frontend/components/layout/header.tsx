@@ -20,7 +20,7 @@ interface HeaderProps {
   subtitle?: string;
 }
 
-export function Header({ title = 'Book Sharing App', subtitle }: HeaderProps) {
+export function Header({ title = 'App para Compartir Libros', subtitle }: HeaderProps) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
 
@@ -48,7 +48,7 @@ export function Header({ title = 'Book Sharing App', subtitle }: HeaderProps) {
                       : 'text-storybook-cream hover:bg-storybook-leather-dark'
                   }
                 >
-                  Dashboard
+                  Panel
                 </Button>
               </Link>
               <Link href="/books">
@@ -60,7 +60,7 @@ export function Header({ title = 'Book Sharing App', subtitle }: HeaderProps) {
                       : 'text-storybook-cream hover:bg-storybook-leather-dark'
                   }
                 >
-                  My Books
+                  Mis libros
                 </Button>
               </Link>
               <Link href="/groups">
@@ -72,7 +72,7 @@ export function Header({ title = 'Book Sharing App', subtitle }: HeaderProps) {
                       : 'text-storybook-cream hover:bg-storybook-leather-dark'
                   }
                 >
-                  Groups
+                  Grupos
                 </Button>
               </Link>
               <Link href="/search">
@@ -84,7 +84,7 @@ export function Header({ title = 'Book Sharing App', subtitle }: HeaderProps) {
                       : 'text-storybook-cream hover:bg-storybook-leather-dark'
                   }
                 >
-                  Discover
+                  Descubrir
                 </Button>
               </Link>
               <Link href="/loans">
@@ -96,7 +96,7 @@ export function Header({ title = 'Book Sharing App', subtitle }: HeaderProps) {
                       : 'text-storybook-cream hover:bg-storybook-leather-dark'
                   }
                 >
-                  Loans
+                  Préstamos
                 </Button>
               </Link>
             </nav>

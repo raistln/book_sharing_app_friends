@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Book, ArrowLeft, Edit, Trash2, Loader2, Upload, Calendar, User, Tag, Globe, Package } from 'lucide-react';
 import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function BookDetailPage() {
   const router = useRouter();
@@ -60,7 +61,7 @@ export default function BookDetailPage() {
       <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-storybook-leather mx-auto mb-4" />
-          <p className="text-storybook-ink-light">Loading book details...</p>
+          <p className="text-storybook-ink-light">Cargando los detalles del libro...</p>
         </div>
       </div>
     );
@@ -73,13 +74,13 @@ export default function BookDetailPage() {
           <CardContent className="text-center py-12">
             <Book className="h-16 w-16 text-storybook-leather opacity-30 mx-auto mb-4" />
             <h3 className="font-display text-2xl font-bold text-storybook-leather mb-2">
-              Book not found
+              Libro no encontrado
             </h3>
             <p className="text-storybook-ink-light mb-6">
-              The book you&apos;re looking for doesn&apos;t exist or has been removed.
+              El libro que buscas no existe o ha sido eliminado.
             </p>
             <Link href="/books">
-              <Button>Back to My Books</Button>
+              <Button>Volver a mis libros</Button>
             </Link>
           </CardContent>
         </Card>
@@ -98,12 +99,25 @@ export default function BookDetailPage() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'available':
+        return 'Disponible';
+      case 'borrowed':
+        return 'Prestado';
+      case 'reserved':
+        return 'Reservado';
+      default:
+        return status;
+    }
+  };
+
   return (
     <main className="container mx-auto px-4 py-12 max-w-6xl">
         <Link href="/books">
           <Button variant="ghost" className="mb-6">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to My Books
+            Volver a mis libros
           </Button>
         </Link>
 
@@ -125,11 +139,11 @@ export default function BookDetailPage() {
                   />
                 </div>
                 
-                {/* Upload Cover (only for owner) */}
+                {/* Subir portada (solo propietario) */}
                 {isOwner && (
                   <div className="p-4 space-y-3">
                     <Label htmlFor="cover-upload" className="text-sm font-semibold">
-                      Update Cover Image
+                      Actualizar portada
                     </Label>
                     <Input
                       id="cover-upload"
@@ -148,12 +162,12 @@ export default function BookDetailPage() {
                         {uploadCover.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                            Uploading...
+                            Subiendo...
                           </>
                         ) : (
                           <>
                             <Upload className="mr-2 h-3 w-3" />
-                            Upload Cover
+                            Subir portada
                           </>
                         )}
                       </Button>
@@ -166,16 +180,16 @@ export default function BookDetailPage() {
 
           {/* Book Details */}
           <div className="md:col-span-2 space-y-6">
-            {/* Title and Actions */}
+            {/* Título y acciones */}
             <Card>
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <CardTitle className="text-3xl mb-2">{book.title}</CardTitle>
-                    <CardDescription className="text-lg">by {book.author}</CardDescription>
+                    <CardDescription className="text-lg">por {book.author}</CardDescription>
                   </div>
                   <Badge variant={getStatusBadgeVariant(book.status)} className="ml-4">
-                    {book.status}
+                    {getStatusLabel(book.status)}
                   </Badge>
                 </div>
               </CardHeader>
@@ -186,7 +200,7 @@ export default function BookDetailPage() {
                     <Link href={`/books/${book.id}/edit`} className="flex-1">
                       <Button variant="outline" className="w-full">
                         <Edit className="mr-2 h-4 w-4" />
-                        Edit Book
+                        Editar libro
                       </Button>
                     </Link>
                     <Button
@@ -195,7 +209,7 @@ export default function BookDetailPage() {
                       disabled={deleteBook.isPending}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      Eliminar
                     </Button>
                   </div>
                 ) : (
@@ -203,7 +217,7 @@ export default function BookDetailPage() {
                     bookId={book.id}
                     bookTitle={book.title}
                     ownerId={book.owner_id}
-                    ownerName={book.owner?.username || 'Unknown'}
+                    ownerName={book.owner?.username || 'Desconocido'}
                     isAvailable={book.status === 'available'}
                     className="w-full"
                   />
@@ -211,11 +225,11 @@ export default function BookDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Description */}
+            {/* Descripción */}
             {book.description && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Description</CardTitle>
+                  <CardTitle>Descripción</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-storybook-ink-light leading-relaxed">
@@ -225,10 +239,10 @@ export default function BookDetailPage() {
               </Card>
             )}
 
-            {/* Book Information */}
+            {/* Información del libro */}
             <Card>
               <CardHeader>
-                <CardTitle>Book Information</CardTitle>
+                <CardTitle>Información del libro</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -236,7 +250,7 @@ export default function BookDetailPage() {
                     <div className="flex items-center gap-3">
                       <Tag className="h-5 w-5 text-storybook-leather" />
                       <div>
-                        <p className="text-sm text-storybook-ink-light">Genre</p>
+                        <p className="text-sm text-storybook-ink-light">Género</p>
                         <p className="font-semibold">{book.genre}</p>
                       </div>
                     </div>
@@ -246,7 +260,7 @@ export default function BookDetailPage() {
                     <div className="flex items-center gap-3">
                       <Package className="h-5 w-5 text-storybook-leather" />
                       <div>
-                        <p className="text-sm text-storybook-ink-light">Condition</p>
+                        <p className="text-sm text-storybook-ink-light">Estado</p>
                         <p className="font-semibold capitalize">{book.condition}</p>
                       </div>
                     </div>
@@ -256,7 +270,7 @@ export default function BookDetailPage() {
                     <div className="flex items-center gap-3">
                       <Globe className="h-5 w-5 text-storybook-leather" />
                       <div>
-                        <p className="text-sm text-storybook-ink-light">Language</p>
+                        <p className="text-sm text-storybook-ink-light">Idioma</p>
                         <p className="font-semibold">{book.language}</p>
                       </div>
                     </div>
@@ -275,9 +289,9 @@ export default function BookDetailPage() {
                   <div className="flex items-center gap-3">
                     <Calendar className="h-5 w-5 text-storybook-leather" />
                     <div>
-                      <p className="text-sm text-storybook-ink-light">Added</p>
+                      <p className="text-sm text-storybook-ink-light">Añadido</p>
                       <p className="font-semibold">
-                        {format(new Date(book.created_at), 'MMM dd, yyyy')}
+                        {format(new Date(book.created_at), "d 'de' MMMM 'de' yyyy", { locale: es })}
                       </p>
                     </div>
                   </div>
@@ -286,7 +300,7 @@ export default function BookDetailPage() {
                     <div className="flex items-center gap-3">
                       <User className="h-5 w-5 text-storybook-leather" />
                       <div>
-                        <p className="text-sm text-storybook-ink-light">Owner</p>
+                        <p className="text-sm text-storybook-ink-light">Propietario</p>
                         <p className="font-semibold">{book.owner.username}</p>
                       </div>
                     </div>
@@ -302,14 +316,14 @@ export default function BookDetailPage() {
           <BookReviewsSection bookId={bookId} />
         </div>
 
-        {/* Delete Confirmation Dialog */}
+        {/* Cuadro de confirmación de borrado */}
         {showDeleteConfirm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <Card className="max-w-md">
               <CardHeader>
-                <CardTitle>Delete Book?</CardTitle>
+                <CardTitle>¿Eliminar libro?</CardTitle>
                 <CardDescription>
-                  Are you sure you want to delete &quot;{book.title}&quot;? This action cannot be undone.
+                  ¿Seguro que quieres eliminar «{book.title}»? Esta acción no se puede deshacer.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -323,10 +337,10 @@ export default function BookDetailPage() {
                     {deleteBook.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Deleting...
+                        Eliminando...
                       </>
                     ) : (
-                      'Yes, Delete'
+                      'Sí, eliminar'
                     )}
                   </Button>
                   <Button
@@ -335,7 +349,7 @@ export default function BookDetailPage() {
                     disabled={deleteBook.isPending}
                     className="flex-1"
                   >
-                    Cancel
+                    Cancelar
                   </Button>
                 </div>
               </CardContent>
