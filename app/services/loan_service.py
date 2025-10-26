@@ -14,6 +14,11 @@ from app.models.book import Book as BookModel, BookStatus
 from app.models.loan import Loan as LoanModel, LoanStatus
 from app.models.user import User
 from app.services.email_service import email_service
+from app.services.notification_service import (
+    create_loan_request_notification,
+    create_loan_approved_notification,
+    create_loan_rejected_notification
+)
 
 
 logger = logging.getLogger(__name__)
@@ -62,7 +67,15 @@ class LoanService:
             lender = self.db.query(User).filter(User.id == book.owner_id).first()
             
             if borrower and lender:
-                logger.info("Loan request notifications disabled; skipping for loan_id=%s", str(loan.id))
+                # Crear notificación para el prestador
+                create_loan_request_notification(
+                    db=self.db,
+                    lender_id=lender.id,
+                    borrower_name=borrower.username,
+                    book_title=book.title,
+                    loan_id=loan.id
+                )
+                logger.info("Notification created for loan request: loan_id=%s", str(loan.id))
                 
                 # Enviar email si está configurado
                 if email_service.is_configured() and lender.email:
@@ -108,7 +121,15 @@ class LoanService:
             borrower = self.db.query(User).filter(User.id == loan.borrower_id).first()
             
             if lender and borrower:
-                logger.info("Loan approval notifications disabled; skipping for loan_id=%s", str(loan.id))
+                # Crear notificación para el prestatario
+                create_loan_approved_notification(
+                    db=self.db,
+                    borrower_id=borrower.id,
+                    lender_name=lender.username,
+                    book_title=book.title,
+                    loan_id=loan.id
+                )
+                logger.info("Notification created for loan approval: loan_id=%s", str(loan.id))
                 
                 # Enviar email si está configurado
                 if email_service.is_configured() and borrower.email:
@@ -138,9 +159,18 @@ class LoanService:
         # Crear notificación antes de eliminar el préstamo
         try:
             lender = self.db.query(User).filter(User.id == lender_id).first()
+            borrower = self.db.query(User).filter(User.id == loan.borrower_id).first()
             book = self.db.query(BookModel).filter(BookModel.id == loan.book_id).first()
-            if lender and book:
-                logger.info("Loan rejection notifications disabled; skipping for loan_id=%s", str(loan.id))
+            if lender and borrower and book:
+                # Crear notificación para el prestatario
+                create_loan_rejected_notification(
+                    db=self.db,
+                    borrower_id=borrower.id,
+                    lender_name=lender.username,
+                    book_title=book.title,
+                    loan_id=loan.id
+                )
+                logger.info("Notification created for loan rejection: loan_id=%s", str(loan.id))
         except Exception as e:
             logger.error("Failed to process loan rejection hooks: %s", str(e))
         

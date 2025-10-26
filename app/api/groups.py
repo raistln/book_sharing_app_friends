@@ -10,7 +10,9 @@ from datetime import datetime, timezone
 from app.database import get_db
 from app.services.auth_service import get_current_user
 from app.services.group_service import GroupService
+from app.services.notification_service import NotificationService, NotificationType, NotificationPriority
 from app.models.user import User
+from app.models.group import Group as GroupModel
 from app.schemas.error import ErrorResponse
 from app.schemas.group import (
     Group, GroupCreate, GroupUpdate, GroupSummary,
@@ -1138,25 +1140,77 @@ async def create_invitation(
         )
     
     # Asegurar que el campo code esté presente en la respuesta incluso si el modelo no lo hidrata aún
+    code_val = None
     try:
         from sqlalchemy import text as _text
         code_row = db.execute(_text("SELECT code FROM invitations WHERE id = :id"), {"id": str(invitation.id)}).first()
         code_val = code_row[0] if code_row else None
-        if code_val is not None:
-            return {
-                "id": invitation.id,
-                "group_id": invitation.group_id,
-                "email": invitation.email,
-                "message": invitation.message,
-                "invited_by": invitation.invited_by,
-                "created_at": invitation.created_at,
-                "expires_at": invitation.expires_at,
-                "is_accepted": invitation.is_accepted,
-                "responded_at": invitation.responded_at,
-                "code": code_val,
-            }
     except Exception:
         pass
+    
+    # Crear notificación para el usuario invitado si existe en la plataforma
+    try:
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Buscar usuario por email o username
+        invited_user = None
+        if invitation_data.email:
+            invited_user = db.query(User).filter(User.email == invitation_data.email).first()
+            logger.info(f"Looking for user with email {invitation_data.email}: {'Found' if invited_user else 'Not found'}")
+        elif hasattr(invitation_data, 'username') and invitation_data.username:
+            invited_user = db.query(User).filter(User.username == invitation_data.username).first()
+            logger.info(f"Looking for user with username {invitation_data.username}: {'Found' if invited_user else 'Not found'}")
+        else:
+            logger.info("No email or username provided in invitation data")
+        
+        if invited_user and code_val:
+            group = db.query(GroupModel).filter(GroupModel.id == group_id).first()
+            logger.info(f"Group found: {group.name if group else 'None'}")
+            
+            if group:
+                notification_svc = NotificationService(db)
+                notification = notification_svc.create_notification(
+                    user_id=invited_user.id,
+                    notification_type=NotificationType.GROUP_INVITATION,
+                    title="Invitación a grupo",
+                    message=f"{current_user.username} te ha invitado a unirte a '{group.name}'",
+                    priority=NotificationPriority.MEDIUM,
+                    data={
+                        "group_id": str(group_id),
+                        "group_name": group.name,
+                        "invitation_id": str(invitation.id),
+                        "invitation_code": code_val,
+                        "inviter_id": str(current_user.id),
+                        "inviter_name": current_user.username,
+                        "message": invitation_data.message or ""
+                    }
+                )
+                logger.info(f"Notification created successfully: {notification.id}")
+        elif not invited_user:
+            identifier = invitation_data.email or getattr(invitation_data, 'username', 'unknown')
+            logger.info(f"User with identifier {identifier} not found in platform - notification not sent")
+        elif not code_val:
+            logger.warning("Invitation code not available - notification not sent")
+    except Exception as e:
+        # No fallar si la notificación falla
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error creating group invitation notification: {e}", exc_info=True)
+    
+    if code_val is not None:
+        return {
+            "id": invitation.id,
+            "group_id": invitation.group_id,
+            "email": invitation.email,
+            "message": invitation.message,
+            "invited_by": invitation.invited_by,
+            "created_at": invitation.created_at,
+            "expires_at": invitation.expires_at,
+            "is_accepted": invitation.is_accepted,
+            "responded_at": invitation.responded_at,
+            "code": code_val,
+        }
     return invitation
 
 
