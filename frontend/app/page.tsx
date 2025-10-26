@@ -3,7 +3,7 @@ import { Book, Sparkles, Users, Search } from "lucide-react";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light">
+    <main className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light storybook-silhouettes storybook-silhouettes-home">
       {/* Cabecera */}
       <header className="bg-storybook-leather text-storybook-cream shadow-book">
         <div className="container mx-auto px-4 py-6">

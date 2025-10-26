@@ -45,7 +45,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Acciones rápidas */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        <div className="grid sm:grid-cols-2 gap-6 mb-12">
           <Card className="hover:shadow-book-hover transition-all duration-300 cursor-pointer">
             <CardHeader>
               <div className="bg-storybook-gold/20 rounded-full w-12 h-12 flex items-center justify-center mb-4">

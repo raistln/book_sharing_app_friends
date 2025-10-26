@@ -52,7 +52,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light flex items-center justify-center p-4 storybook-silhouettes storybook-silhouettes-auth">
       {/* Elementos decorativos */}
       <div className="absolute top-10 right-10 animate-float">
         <Sparkles className="h-8 w-8 text-storybook-gold opacity-50" />

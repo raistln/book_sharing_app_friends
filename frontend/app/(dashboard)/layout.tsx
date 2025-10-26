@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { Header } from '@/components/layout/header';
 import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function DashboardLayout({
   children,
@@ -12,6 +13,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, isLoadingUser } = useAuth();
 
   useEffect(() => {
@@ -35,8 +37,15 @@ export default function DashboardLayout({
     return null;
   }
 
+  const isLoansRoute = pathname?.startsWith('/loans');
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light">
+    <div
+      className={cn(
+        'min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light',
+        !isLoansRoute && 'storybook-silhouettes storybook-silhouettes-dashboard'
+      )}
+    >
       <Header />
       {children}
     </div>

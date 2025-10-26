@@ -104,6 +104,82 @@
   );
 }
 
+.storybook-silhouettes {
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+  --storybook-silhouette-opacity: 0.08;
+  --storybook-silhouette-before: none;
+  --storybook-silhouette-before-position: top right;
+  --storybook-silhouette-before-size: clamp(220px, 28vw, 360px);
+  --storybook-silhouette-after: none;
+  --storybook-silhouette-after-position: bottom left;
+  --storybook-silhouette-after-size: clamp(200px, 24vw, 320px);
+}
+
+.storybook-silhouettes > * {
+  position: relative;
+  z-index: 1;
+}
+
+.storybook-silhouettes::before,
+.storybook-silhouettes::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: var(--storybook-silhouette-opacity);
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+.storybook-silhouettes::before {
+  background-image: var(--storybook-silhouette-before);
+  background-position: var(--storybook-silhouette-before-position);
+  background-size: var(--storybook-silhouette-before-size);
+}
+
+.storybook-silhouettes::after {
+  background-image: var(--storybook-silhouette-after);
+  background-position: var(--storybook-silhouette-after-position);
+  background-size: var(--storybook-silhouette-after-size);
+}
+
+.storybook-no-silhouettes {
+  --storybook-silhouette-opacity: 0;
+  --storybook-silhouette-before: none;
+  --storybook-silhouette-after: none;
+}
+
+.storybook-silhouettes-home {
+  --storybook-silhouette-before: url('/backgrounds/dragon_castle_silhouette.svg');
+  --storybook-silhouette-before-position: top 5% right 5%;
+  --storybook-silhouette-before-size: clamp(260px, 32vw, 420px);
+  --storybook-silhouette-after: url('/backgrounds/unicorn_silhouette.svg');
+  --storybook-silhouette-after-position: bottom 0 left 5%;
+  --storybook-silhouette-after-size: clamp(220px, 28vw, 360px);
+}
+
+.storybook-silhouettes-auth {
+  --storybook-silhouette-before: url('/backgrounds/fairy_silhouette.svg');
+  --storybook-silhouette-before-position: top -5% left 5%;
+  --storybook-silhouette-before-size: clamp(200px, 26vw, 320px);
+  --storybook-silhouette-after: url('/backgrounds/witch_silhouette.svg');
+  --storybook-silhouette-after-position: bottom 0 right 5%;
+  --storybook-silhouette-after-size: clamp(200px, 24vw, 320px);
+}
+
+.storybook-silhouettes-dashboard {
+  --storybook-silhouette-before: url('/backgrounds/dragon_castle2_silhouette.svg');
+  --storybook-silhouette-before-position: top -10% right -5%;
+  --storybook-silhouette-before-size: clamp(260px, 30vw, 400px);
+  --storybook-silhouette-after: url('/backgrounds/mermaid_silhouette.svg');
+  --storybook-silhouette-after-position: bottom -5% left 0;
+  --storybook-silhouette-after-size: clamp(220px, 28vw, 360px);
+}
+
 /* Scrollbar personalizado */
 ::-webkit-scrollbar {
   width: 10px;
