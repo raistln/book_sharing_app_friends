@@ -152,6 +152,9 @@ def send_message(
     
     **Permisos requeridos:**
     - Debes ser el propietario del libro o el prestatario.
+    
+    **Parámetros opcionales:**
+    - `since`: Timestamp ISO 8601 para obtener solo mensajes posteriores a esa fecha
     """,
     responses={
         200: {
@@ -182,6 +185,7 @@ def send_message(
 )
 def get_messages(
     loan_id: UUID,
+    since: str | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> List[MessageSchema]:
@@ -190,6 +194,7 @@ def get_messages(
     
     Args:
         loan_id: ID único del préstamo
+        since: Timestamp ISO 8601 opcional para obtener solo mensajes nuevos
         current_user: Usuario autenticado (inyectado automáticamente)
         db: Sesión de base de datos (inyectada automáticamente)
         
@@ -201,7 +206,7 @@ def get_messages(
         HTTPException: 404 si el préstamo no existe
     """
     svc = MessageService(db)
-    items = svc.list_for_loan(loan_id, current_user.id)
+    items = svc.list_for_loan(loan_id, current_user.id, since=since)
     if items is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

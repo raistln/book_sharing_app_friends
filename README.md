@@ -4,7 +4,7 @@ Una aplicación completa y lista para producción para compartir libros entre am
 
 ## 🎯 Estado del Proyecto
 
-**En desarrollo activo** – La aplicación cubre el flujo principal de compartir libros (autenticación, catálogo, préstamos, grupos e invitaciones), las reseñas ya están operativas y el backend de notificaciones está listo. El chat funciona con polling pero requiere optimizaciones, la interfaz de notificaciones y la suite de tests automatizados todavía están en evolución.
+**En desarrollo activo** – La aplicación cubre el flujo principal de compartir libros (autenticación, catálogo, préstamos, grupos e invitaciones), las reseñas ya están operativas, el chat optimizado funciona correctamente y el backend de notificaciones está listo. La interfaz de notificaciones y la suite de tests automatizados todavía están en evolución.
 
 ### Progreso actual
 - **✅ Autenticación y perfiles**: Registro/login con JWT, gestión de usuarios y seguridad básica.
@@ -12,7 +12,7 @@ Una aplicación completa y lista para producción para compartir libros entre am
 - **✅ Préstamos avanzados**: Solicitudes, aprobaciones, cancelaciones, devoluciones y exportaciones.
 - **✅ Grupos e invitaciones**: Gestión de comunidades, roles y códigos de invitación.
 - **✅ Reseñas**: Calificaciones 1-5, estadísticas y gestión por usuario.
-- **🟡 Chat por préstamo (polling)**: Disponible con REST; pendiente optimizar incrementalidad y UX.
+- **✅ Chat por préstamo optimizado**: Sistema de mensajería con polling inteligente (solo obtiene mensajes nuevos).
 - **🟡 Notificaciones**: Backend operativo (recordatorios, eventos de préstamo); UI y emails opcionales aún por integrar por completo.
 - **🟡 Testing automatizado**: Suite inicial en `tests/` activa; falta ampliar cobertura y documentar resultados actuales.
 

@@ -29,10 +29,23 @@ class MessageService:
         self.db.refresh(msg)
         return msg
 
-    def list_for_loan(self, loan_id, user_id) -> List[MessageModel] | None:
+    def list_for_loan(self, loan_id, user_id, since: str | None = None) -> List[MessageModel] | None:
         if not self.can_access(loan_id, user_id):
             return None
-        return self.db.query(MessageModel).filter(MessageModel.loan_id == loan_id).order_by(MessageModel.created_at.asc()).all()
+        
+        query = self.db.query(MessageModel).filter(MessageModel.loan_id == loan_id)
+        
+        # Si se proporciona 'since', filtrar solo mensajes posteriores
+        if since:
+            try:
+                from dateutil import parser
+                since_dt = parser.isoparse(since)
+                query = query.filter(MessageModel.created_at > since_dt)
+            except (ValueError, TypeError):
+                # Si el formato es inválido, ignorar el filtro
+                pass
+        
+        return query.order_by(MessageModel.created_at.asc()).all()
 
     def cleanup_older_than(self, days: int) -> int:
         cutoff = datetime.utcnow() - timedelta(days=days)

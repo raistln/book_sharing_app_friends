@@ -9,8 +9,9 @@ export const chatApi = {
   },
 
   // Obtener mensajes de un préstamo
-  async getMessages(loanId: string): Promise<Message[]> {
-    const response = await apiClient.get<Message[]>(`/chat/loan/${loanId}`);
+  async getMessages(loanId: string, since?: string): Promise<Message[]> {
+    const params = since ? { since } : {};
+    const response = await apiClient.get<Message[]>(`/chat/loan/${loanId}`, { params });
     return response.data;
   },
 };

@@ -20,7 +20,7 @@ depends_on = None
 def upgrade() -> None:
     op.create_table(
         'messages',
-        sa.Column('id', sa.UUID(), nullable=False),
+        sa.Column('id', sa.UUID(), nullable=False, server_default=sa.text('gen_random_uuid()')),
         sa.Column('loan_id', sa.UUID(), nullable=False),
         sa.Column('sender_id', sa.UUID(), nullable=False),
         sa.Column('content', sa.Text(), nullable=False),
