@@ -82,12 +82,25 @@ export default function SearchPage() {
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'available':
+        return 'Disponible';
+      case 'borrowed':
+        return 'Prestado';
+      case 'reserved':
+        return 'Reservado';
+      default:
+        return status;
+    }
+  };
+
   if (isLoadingUser || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin text-storybook-leather mx-auto mb-4" />
-          <p className="text-storybook-ink-light font-serif">Loading...</p>
+          <p className="text-storybook-ink-light font-serif">Cargando...</p>
         </div>
       </div>
     );
@@ -95,7 +108,7 @@ export default function SearchPage() {
 
   return (
     <main className="container mx-auto px-4 py-12">
-        {/* Search Bar */}
+        {/* Barra de búsqueda */}
         <Card className="mb-8">
           <CardContent className="pt-6">
             <div className="flex gap-4">
@@ -103,7 +116,7 @@ export default function SearchPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-storybook-ink-light" />
                   <Input
-                    placeholder="Search books by title, author, or ISBN..."
+                    placeholder="Busca libros por título, autor o ISBN..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
@@ -117,7 +130,7 @@ export default function SearchPage() {
                 ) : (
                   <>
                     <Search className="mr-2 h-4 w-4" />
-                    Search
+                    Buscar
                   </>
                 )}
               </Button>
@@ -126,24 +139,24 @@ export default function SearchPage() {
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <SlidersHorizontal className="mr-2 h-4 w-4" />
-                Filters
+                Filtros
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Filters Panel */}
+        {/* Panel de filtros */}
         {showFilters && (
           <Card className="mb-8 animate-fade-in-up">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Filter className="h-5 w-5" />
-                  Advanced Filters
+                  Filtros avanzados
                 </CardTitle>
                 <Button variant="ghost" size="sm" onClick={clearFilters}>
                   <X className="mr-2 h-4 w-4" />
-                  Clear All
+                  Limpiar todo
                 </Button>
               </div>
             </CardHeader>
@@ -151,16 +164,16 @@ export default function SearchPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Group Filter */}
                 <div className="space-y-2">
-                  <Label>Group</Label>
+                  <Label>Grupo</Label>
                   <Select
                     value={filters.group_id || 'all'}
                     onValueChange={(value) => setFilters({ ...filters, group_id: value === 'all' ? '' : value, page: 1 })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="All groups" />
+                      <SelectValue placeholder="Todos los grupos" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All groups</SelectItem>
+                      <SelectItem value="all">Todos los grupos</SelectItem>
                       {groups?.map((group) => (
                         <SelectItem key={group.id} value={group.id}>
                           {group.name}
@@ -172,16 +185,16 @@ export default function SearchPage() {
 
                 {/* Genre */}
                 <div className="space-y-2">
-                  <Label>Genre</Label>
+                  <Label>Género</Label>
                   <Select
                     value={filters.genre || 'all'}
                     onValueChange={(value) => setFilters({ ...filters, genre: value === 'all' ? '' : value, page: 1 })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="All genres" />
+                      <SelectValue placeholder="Todos los géneros" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All genres</SelectItem>
+                      <SelectItem value="all">Todos los géneros</SelectItem>
                       {genres.map((genre) => (
                         <SelectItem key={genre} value={genre}>
                           {genre}
@@ -193,16 +206,16 @@ export default function SearchPage() {
 
                 {/* Language */}
                 <div className="space-y-2">
-                  <Label>Language</Label>
+                  <Label>Idioma</Label>
                   <Select
                     value={filters.language || 'all'}
                     onValueChange={(value) => setFilters({ ...filters, language: value === 'all' ? '' : value, page: 1 })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="All languages" />
+                      <SelectValue placeholder="Todos los idiomas" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All languages</SelectItem>
+                      <SelectItem value="all">Todos los idiomas</SelectItem>
                       {languages.map((lang) => (
                         <SelectItem key={lang.code} value={lang.name}>
                           {lang.name}
@@ -214,16 +227,16 @@ export default function SearchPage() {
 
                 {/* Condition */}
                 <div className="space-y-2">
-                  <Label>Condition</Label>
+                  <Label>Estado</Label>
                   <Select
                     value={filters.condition || 'all'}
                     onValueChange={(value) => setFilters({ ...filters, condition: value === 'all' ? '' : value, page: 1 })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Any condition" />
+                      <SelectValue placeholder="Cualquier estado" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Any condition</SelectItem>
+                      <SelectItem value="all">Cualquier estado</SelectItem>
                       {conditions.map((cond) => (
                         <SelectItem key={cond.value} value={cond.value}>
                           {cond.label}
@@ -235,7 +248,7 @@ export default function SearchPage() {
 
                 {/* Sort By */}
                 <div className="space-y-2">
-                  <Label>Sort By</Label>
+                  <Label>Ordenar por</Label>
                   <Select
                     value={filters.sort_by}
                     onValueChange={(value) => setFilters({ ...filters, sort_by: value, page: 1 })}
@@ -244,16 +257,16 @@ export default function SearchPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="created_at">Date Added</SelectItem>
-                      <SelectItem value="title">Title</SelectItem>
-                      <SelectItem value="author">Author</SelectItem>
+                      <SelectItem value="created_at">Fecha de alta</SelectItem>
+                      <SelectItem value="title">Título</SelectItem>
+                      <SelectItem value="author">Autor</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 {/* Sort Order */}
                 <div className="space-y-2">
-                  <Label>Order</Label>
+                  <Label>Orden</Label>
                   <Select
                     value={filters.sort_order}
                     onValueChange={(value: 'asc' | 'desc') => setFilters({ ...filters, sort_order: value, page: 1 })}
@@ -262,8 +275,8 @@ export default function SearchPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="desc">Descending</SelectItem>
-                      <SelectItem value="asc">Ascending</SelectItem>
+                      <SelectItem value="desc">Descendente</SelectItem>
+                      <SelectItem value="asc">Ascendente</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -279,7 +292,7 @@ export default function SearchPage() {
                   className="h-4 w-4 rounded border-storybook-leather text-storybook-gold focus:ring-storybook-gold"
                 />
                 <Label htmlFor="available_only" className="cursor-pointer">
-                  Show only available books
+                  Mostrar solo libros disponibles
                 </Label>
               </div>
             </CardContent>
@@ -289,11 +302,11 @@ export default function SearchPage() {
         {/* Results */}
         <div className="mb-6">
           <h2 className="font-display text-2xl font-bold text-storybook-leather">
-            {pagination ? `${pagination.total} books found` : 'Search Results'}
+            {pagination ? `${pagination.total} libros encontrados` : 'Resultados de la búsqueda'}
           </h2>
           {filters.q && (
             <p className="text-storybook-ink-light mt-1">
-              Searching for: <span className="font-semibold">"{filters.q}"</span>
+              Buscando: <span className="font-semibold">"{filters.q}"</span>
             </p>
           )}
         </div>
@@ -302,20 +315,20 @@ export default function SearchPage() {
         {isLoading ? (
           <div className="text-center py-20">
             <Loader2 className="h-12 w-12 animate-spin text-storybook-leather mx-auto mb-4" />
-            <p className="text-storybook-ink-light">Searching books...</p>
+            <p className="text-storybook-ink-light">Buscando libros...</p>
           </div>
         ) : books.length === 0 ? (
           <Card className="text-center py-20">
             <CardContent>
               <Search className="h-16 w-16 text-storybook-leather opacity-30 mx-auto mb-4" />
               <h3 className="font-display text-2xl font-bold text-storybook-leather mb-2">
-                No books found
+                No se han encontrado libros
               </h3>
               <p className="text-storybook-ink-light mb-6">
-                Try adjusting your search or filters
+                Prueba a ajustar tu búsqueda o los filtros
               </p>
               <Button onClick={clearFilters} variant="outline">
-                Clear Filters
+                Limpiar filtros
               </Button>
             </CardContent>
           </Card>
@@ -338,7 +351,7 @@ export default function SearchPage() {
                     />
                     <div className="absolute top-2 right-2">
                       <Badge variant={getStatusBadgeVariant(book.status)}>
-                        {book.status}
+                        {getStatusLabel(book.status)}
                       </Badge>
                     </div>
                   </div>
@@ -347,7 +360,7 @@ export default function SearchPage() {
                   <CardHeader>
                     <CardTitle className="line-clamp-2 min-h-[3.5rem]">{book.title}</CardTitle>
                     <CardDescription className="line-clamp-1">
-                      by {book.author || 'Unknown Author'}
+                      por {book.author || 'Autor desconocido'}
                     </CardDescription>
                   </CardHeader>
 
@@ -367,7 +380,7 @@ export default function SearchPage() {
 
                     {book.owner && (
                       <p className="text-sm text-storybook-ink-light mb-4">
-                        Owner: <span className="font-semibold">{book.owner.username}</span>
+                        Propietario: <span className="font-semibold">{book.owner.username}</span>
                       </p>
                     )}
 
@@ -375,7 +388,7 @@ export default function SearchPage() {
                     <Link href={`/books/${book.id}`} className="block">
                       <Button variant="outline" className="w-full" size="sm">
                         <Eye className="mr-2 h-3 w-3" />
-                        View Details
+                        Ver detalles
                       </Button>
                     </Link>
                   </CardContent>
@@ -391,7 +404,7 @@ export default function SearchPage() {
                   onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
                   disabled={filters.page === 1}
                 >
-                  Previous
+                  Anterior
                 </Button>
                 <div className="flex items-center gap-2">
                   {Array.from({ length: Math.min(pagination.total_pages, 5) }, (_, i) => {
@@ -416,7 +429,7 @@ export default function SearchPage() {
                   onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
                   disabled={filters.page === pagination.total_pages}
                 >
-                  Next
+                  Siguiente
                 </Button>
               </div>
             )}

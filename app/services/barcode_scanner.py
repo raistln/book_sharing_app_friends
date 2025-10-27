@@ -1,13 +1,34 @@
-"""
-Servicio para escanear códigos de barras en imágenes de libros.
-"""
+"""Servicio para escanear códigos de barras en imágenes de libros."""
+
+import logging
+from typing import List, Optional
+
 import cv2
 import numpy as np
-from typing import List, Optional
-from pyzbar import pyzbar
-import logging
 
 logger = logging.getLogger(__name__)
+
+try:  # pragma: no cover - comportamiento dependiente del entorno
+    from pyzbar import pyzbar  # type: ignore
+
+    _PYZBAR_AVAILABLE = True
+except ImportError:  # pragma: no cover - ruta ejecutada solo si falta libzbar
+    _PYZBAR_AVAILABLE = False
+
+    class _PyzbarStub:
+        """Fallback mínimo cuando la librería nativa zbar no está disponible."""
+
+        @staticmethod
+        def decode(*_args, **_kwargs):  # pragma: no cover - se ejerce vía except
+            raise ImportError(
+                "pyzbar/zbar no está disponible en este entorno. "
+                "Instala la librería nativa zbar para habilitar el escaneo de códigos."
+            )
+
+    pyzbar = _PyzbarStub()  # type: ignore
+    logger.warning(
+        "pyzbar/zbar no está disponible; el escaneo de códigos de barras se deshabilitará en este entorno."
+    )
 
 
 class BarcodeScanner:

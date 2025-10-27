@@ -3,51 +3,60 @@ import type { NotificationType, NotificationPriority } from '@/lib/types/notific
 // Configuración de iconos y colores por tipo
 export const notificationConfig: Record<
   NotificationType,
-  { icon: string; color: string; priority: NotificationPriority }
+  { icon: string; color: string; label: string; priority: NotificationPriority }
 > = {
   LOAN_REQUEST: {
     icon: '📚',
     color: 'bg-blue-100 text-blue-800',
+    label: 'Préstamo solicitado',
     priority: 'high',
   },
   LOAN_APPROVED: {
     icon: '✅',
     color: 'bg-green-100 text-green-800',
+    label: 'Préstamo aprobado',
     priority: 'high',
   },
   LOAN_REJECTED: {
     icon: '❌',
     color: 'bg-red-100 text-red-800',
+    label: 'Préstamo rechazado',
     priority: 'medium',
   },
   LOAN_RETURNED: {
     icon: '📖',
     color: 'bg-gray-100 text-gray-800',
+    label: 'Libro devuelto',
     priority: 'medium',
   },
   DUE_DATE_REMINDER: {
     icon: '⏰',
     color: 'bg-yellow-100 text-yellow-800',
+    label: 'Recordatorio de devolución',
     priority: 'medium',
   },
   OVERDUE: {
     icon: '⚠️',
     color: 'bg-red-100 text-red-800',
+    label: 'Préstamo vencido',
     priority: 'urgent',
   },
   NEW_MESSAGE: {
     icon: '💬',
     color: 'bg-purple-100 text-purple-800',
+    label: 'Mensaje recibido',
     priority: 'low',
   },
   GROUP_INVITATION: {
     icon: '👥',
     color: 'bg-indigo-100 text-indigo-800',
+    label: 'Invitación a grupo',
     priority: 'medium',
   },
   GROUP_JOINED: {
     icon: '🎉',
     color: 'bg-green-100 text-green-800',
+    label: 'Nuevo miembro en grupo',
     priority: 'low',
   },
 };

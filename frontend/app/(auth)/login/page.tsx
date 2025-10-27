@@ -39,8 +39,8 @@ export default function LoginPage() {
   }, [loginError]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light flex items-center justify-center p-4">
-      {/* Decorative elements */}
+    <div className="min-h-screen bg-gradient-to-br from-storybook-parchment via-storybook-cream to-storybook-gold-light flex items-center justify-center p-4 storybook-silhouettes storybook-silhouettes-auth">
+      {/* Elementos decorativos */}
       <div className="absolute top-10 left-10 animate-float">
         <Sparkles className="h-8 w-8 text-storybook-gold opacity-50" />
       </div>
@@ -49,25 +49,25 @@ export default function LoginPage() {
       </div>
 
       <div className="w-full max-w-md">
-        {/* Logo/Header */}
+        {/* Logotipo / Cabecera */}
         <div className="text-center mb-8 animate-fade-in-up">
           <div className="inline-block mb-4">
             <Book className="h-16 w-16 text-storybook-leather mx-auto" />
           </div>
           <h1 className="font-display text-4xl font-bold text-storybook-leather mb-2">
-            Welcome Back
+            ¡Hola de nuevo!
           </h1>
           <p className="text-storybook-ink-light font-serif">
-            Continue your reading journey
+            Continúa tu aventura lectora
           </p>
         </div>
 
-        {/* Login Card */}
+        {/* Tarjeta de acceso */}
         <Card className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <CardHeader>
-            <CardTitle>Sign In</CardTitle>
+            <CardTitle>Iniciar sesión</CardTitle>
             <CardDescription>
-              Enter your credentials to access your library
+              Introduce tus credenciales para acceder a tu biblioteca
             </CardDescription>
           </CardHeader>
           {error && (
@@ -81,11 +81,11 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Username or Email</Label>
+                <Label htmlFor="username">Usuario o correo electrónico</Label>
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Enter your username or email"
+                  placeholder="Escribe tu usuario o correo"
                   value={formData.username}
                   onChange={(e) => {
                     setFormData({ ...formData, username: e.target.value });
@@ -96,11 +96,11 @@ export default function LoginPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Contraseña</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Escribe tu contraseña"
                   value={formData.password}
                   onChange={(e) => {
                     setFormData({ ...formData, password: e.target.value });
@@ -125,30 +125,30 @@ export default function LoginPage() {
                 ) : (
                   <>
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Sign In
+                    Acceder
                   </>
                 )}
               </Button>
               <div className="text-center text-sm text-storybook-ink-light">
-                Don't have an account?{' '}
+                ¿Aún no tienes cuenta?{' '}
                 <Link
                   href="/register"
                   className="text-storybook-leather hover:text-storybook-leather-dark font-semibold underline"
                 >
-                  Create one
+                  Crear una
                 </Link>
               </div>
             </CardFooter>
           </form>
         </Card>
 
-        {/* Back to home */}
+        {/* Volver al inicio */}
         <div className="text-center mt-6">
           <Link
             href="/"
             className="text-sm text-storybook-ink-light hover:text-storybook-leather transition-colors"
           >
-            ← Back to home
+            ← Volver al inicio
           </Link>
         </div>
       </div>

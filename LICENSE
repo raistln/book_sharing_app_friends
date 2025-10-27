@@ -1,19 +1,36 @@
-Book Sharing App License v1.0
+Book Sharing App Collaborative License v1.1
 
 Copyright (c) 2025 Samuel Martín Fonseca
 
-Permission is hereby granted to:
-1. View, study, and learn from this source code for educational purposes
-2. Fork and modify for personal, non-commercial learning projects
-3. Include this project in portfolios and resumes with proper attribution
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to use,
+copy, fork, publish, and/or modify the Software, subject to the following
+conditions:
 
-Restrictions:
-- No commercial use without explicit written permission
-- No redistribution of the original or modified code
-- No use in production environments without authorization
-- No removal of copyright notices
+1. **Non-Commercial Use Only** – The Software and any derivative works may not
+   be used, in whole or in part, for commercial purposes without the express
+   written consent of the copyright holder.
+2. **Attribution** – All copies or substantial portions of the Software must
+   include this license text and a clear attribution to "Samuel Martín
+   Fonseca" as the original author.
+3. **Share Alike** – Any modifications or derivative works must be distributed
+   under the same license terms, with documentation of the changes made.
+4. **No Removal of Notices** – Copyright and license notices must remain
+   intact in all copies or substantial portions of the Software.
 
-For commercial use, production deployment, or any other use not explicitly 
-permitted above, contact: [samumarfon@gmail.com]
+This license explicitly permits:
+- Public forks and collaborative contributions (pull requests, patches, etc.)
+  provided they comply with the terms above.
+- Personal or academic projects, demos, and portfolio usage with proper
+  attribution.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+For commercial licensing, production deployment, or any other use not covered
+here, contact: samumarfon@gmail.com
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

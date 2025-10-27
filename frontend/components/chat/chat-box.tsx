@@ -21,7 +21,7 @@ interface ChatBoxProps {
 
 export function ChatBox({ loanId, otherUser }: ChatBoxProps) {
   const { user } = useAuth();
-  const { messages, isLoading, refetch } = useMessages(loanId);
+  const { messages, isLoading, refetch, resetTimestamp } = useMessages(loanId);
   const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -45,6 +45,7 @@ export function ChatBox({ loanId, otherUser }: ChatBoxProps) {
       {
         onSuccess: () => {
           setNewMessage('');
+          // Refrescar para obtener el mensaje enviado y actualizar el timestamp
           refetch();
         },
       }

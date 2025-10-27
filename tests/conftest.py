@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker
 os.environ["TESTING"] = "true"
 os.environ["DISABLE_RATE_LIMITING"] = "true"
 
-from app.database import get_db, Base
+from app.database import get_db, Base, SessionLocal
 from app.main import app
 
 # Create test database
@@ -29,6 +29,9 @@ def override_get_db():
 
 # Override the dependency
 app.dependency_overrides[get_db] = override_get_db
+
+# Asegurar que SessionLocal utilice la base de pruebas
+SessionLocal.configure(bind=engine)
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_environment():

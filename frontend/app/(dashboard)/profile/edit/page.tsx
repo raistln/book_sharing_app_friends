@@ -233,7 +233,7 @@ export default function EditProfilePage() {
             <CardContent>
               <form onSubmit={handleProfileSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username">Usuario</Label>
                   <Input
                     id="username"
                     value={profile?.username || ''}
@@ -241,12 +241,12 @@ export default function EditProfilePage() {
                     className="bg-gray-100"
                   />
                   <p className="text-xs text-storybook-ink-light">
-                    El username no se puede cambiar
+                    El nombre de usuario no se puede cambiar
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Correo electrónico</Label>
                   <Input
                     id="email"
                     type="email"

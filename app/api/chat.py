@@ -19,6 +19,8 @@ from app.services.message_service import MessageService
 from app.schemas.message import MessageCreate, Message as MessageSchema
 from app.schemas.error import ErrorResponse
 from app.models.user import User
+from app.models.loan import Loan
+from app.services.notification_service import NotificationService, NotificationType, NotificationPriority
 
 router = APIRouter(
     prefix="/chat",
@@ -137,6 +139,33 @@ def send_message(
                 "type": "forbidden"
             }
         )
+    
+    # Crear notificación para el otro usuario del préstamo
+    try:
+        loan = db.query(Loan).filter(Loan.id == payload.loan_id).first()
+        if loan:
+            # Determinar quién es el destinatario (el que no envió el mensaje)
+            recipient_id = loan.lender_id if current_user.id == loan.borrower_id else loan.borrower_id
+            
+            # Crear notificación
+            notification_svc = NotificationService(db)
+            notification_svc.create_notification(
+                user_id=recipient_id,
+                notification_type=NotificationType.NEW_MESSAGE,
+                title="Nuevo mensaje",
+                message=f"{current_user.username} te ha enviado un mensaje",
+                priority=NotificationPriority.MEDIUM,
+                data={
+                    "loan_id": str(payload.loan_id),
+                    "sender_id": str(current_user.id),
+                    "sender_name": current_user.username,
+                    "message_preview": payload.content[:50] + "..." if len(payload.content) > 50 else payload.content
+                }
+            )
+    except Exception as e:
+        # No fallar si la notificación falla, solo registrar el error
+        print(f"Error creating message notification: {e}")
+    
     return msg
 
 
@@ -152,6 +181,9 @@ def send_message(
     
     **Permisos requeridos:**
     - Debes ser el propietario del libro o el prestatario.
+    
+    **Parámetros opcionales:**
+    - `since`: Timestamp ISO 8601 para obtener solo mensajes posteriores a esa fecha
     """,
     responses={
         200: {
@@ -182,6 +214,7 @@ def send_message(
 )
 def get_messages(
     loan_id: UUID,
+    since: str | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> List[MessageSchema]:
@@ -190,6 +223,7 @@ def get_messages(
     
     Args:
         loan_id: ID único del préstamo
+        since: Timestamp ISO 8601 opcional para obtener solo mensajes nuevos
         current_user: Usuario autenticado (inyectado automáticamente)
         db: Sesión de base de datos (inyectada automáticamente)
         
@@ -201,7 +235,7 @@ def get_messages(
         HTTPException: 404 si el préstamo no existe
     """
     svc = MessageService(db)
-    items = svc.list_for_loan(loan_id, current_user.id)
+    items = svc.list_for_loan(loan_id, current_user.id, since=since)
     if items is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

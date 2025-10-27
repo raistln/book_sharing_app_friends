@@ -12,8 +12,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Check, CheckCheck } from 'lucide-react';
+import { Bell, Check, CheckCheck, Copy } from 'lucide-react';
 import { formatRelativeTime, notificationConfig } from '@/lib/utils/notifications';
+import { toast } from '@/components/ui/use-toast';
 import Link from 'next/link';
 
 export function NotificationBell() {
@@ -30,6 +31,23 @@ export function NotificationBell() {
 
   const handleMarkAllAsRead = async () => {
     await markAllAsRead();
+  };
+
+  const handleCopyCode = async (code: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(code);
+      toast({
+        title: 'Código copiado',
+        description: 'El código de invitación se ha copiado al portapapeles',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo copiar el código',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -92,6 +110,24 @@ export function NotificationBell() {
                       <p className="text-xs text-storybook-ink-light mt-1 line-clamp-2">
                         {notification.message}
                       </p>
+                      
+                      {/* Mostrar código de invitación si existe */}
+                      {notification.type === 'GROUP_INVITATION' && notification.data?.invitation_code && (
+                        <div className="mt-2 flex items-center gap-2 p-2 bg-storybook-cream rounded border border-storybook-gold-light">
+                          <code className="text-xs font-mono text-storybook-leather flex-1">
+                            {notification.data.invitation_code}
+                          </code>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0"
+                            onClick={(e) => handleCopyCode(notification.data?.invitation_code || '', e)}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                      
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-storybook-ink-light">
                           {formatRelativeTime(notification.created_at)}

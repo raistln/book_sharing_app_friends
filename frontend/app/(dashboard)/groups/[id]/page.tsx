@@ -276,7 +276,7 @@ export default function GroupDetailPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Crown className="h-4 w-4" />
-                        <span>{members.filter((m) => m.role === 'admin').length} admins</span>
+                        <span>{members.filter((m) => m.role === 'admin').length} administradores</span>
                       </div>
                     </div>
                   </>
@@ -351,7 +351,7 @@ export default function GroupDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle>Miembros ({members.length})</CardTitle>
-              <CardDescription>Usuarios que forman parte del grupo</CardDescription>
+                <CardDescription>Personas que forman parte del grupo</CardDescription>
             </CardHeader>
             <CardContent>
               {loadingMembers ? (
@@ -389,8 +389,8 @@ export default function GroupDetailPage() {
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="admin">Admin</SelectItem>
-                                <SelectItem value="member">Member</SelectItem>
+                                <SelectItem value="admin">Administrador</SelectItem>
+                                <SelectItem value="member">Miembro</SelectItem>
                               </SelectContent>
                             </Select>
                             <AlertDialog>
@@ -423,10 +423,10 @@ export default function GroupDetailPage() {
                             {member.role === 'admin' ? (
                               <>
                                 <Crown className="h-3 w-3 mr-1" />
-                                Admin
+                                Administrador
                               </>
                             ) : (
-                              'Member'
+                              'Miembro'
                             )}
                           </Badge>
                         )}
@@ -461,7 +461,7 @@ export default function GroupDetailPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="invite-username">Username (opcional)</Label>
+                      <Label htmlFor="invite-username">Usuario (opcional)</Label>
                       <Input
                         id="invite-username"
                         type="text"
@@ -471,7 +471,7 @@ export default function GroupDetailPage() {
                         disabled={createInvitation.isPending}
                       />
                       <p className="text-xs text-storybook-ink-light mt-1">
-                        Proporciona email o username para invitar a alguien específico, o déjalos vacíos para crear un código genérico
+                        Proporciona correo o usuario para invitar a alguien específico, o déjalos vacíos para crear un código genérico
                       </p>
                     </div>
                     <div>
@@ -522,7 +522,7 @@ export default function GroupDetailPage() {
                             <div className="flex-1">
                               <p className="font-medium text-sm">{invitation.email}</p>
                               <p className="text-xs text-storybook-ink-light">
-                                Expira: {new Date(invitation.expires_at).toLocaleDateString()}
+                                Expira: {new Date(invitation.expires_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                               </p>
                             </div>
                             <div className="flex items-center gap-2">

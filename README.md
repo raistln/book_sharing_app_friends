@@ -4,7 +4,7 @@ Una aplicación completa y lista para producción para compartir libros entre am
 
 ## 🎯 Estado del Proyecto
 
-**En desarrollo activo** – La aplicación cubre el flujo principal de compartir libros (autenticación, catálogo, préstamos, grupos e invitaciones), las reseñas ya están operativas y el backend de notificaciones está listo. El chat funciona con polling pero requiere optimizaciones, la interfaz de notificaciones y la suite de tests automatizados todavía están en evolución.
+**En desarrollo activo** – La aplicación cubre el flujo principal de compartir libros (autenticación, catálogo, préstamos, grupos e invitaciones), las reseñas ya están operativas, el chat optimizado funciona correctamente y el backend de notificaciones está listo. La interfaz de notificaciones y la suite de tests automatizados todavía están en evolución.
 
 ### Progreso actual
 - **✅ Autenticación y perfiles**: Registro/login con JWT, gestión de usuarios y seguridad básica.
@@ -12,7 +12,7 @@ Una aplicación completa y lista para producción para compartir libros entre am
 - **✅ Préstamos avanzados**: Solicitudes, aprobaciones, cancelaciones, devoluciones y exportaciones.
 - **✅ Grupos e invitaciones**: Gestión de comunidades, roles y códigos de invitación.
 - **✅ Reseñas**: Calificaciones 1-5, estadísticas y gestión por usuario.
-- **🟡 Chat por préstamo (polling)**: Disponible con REST; pendiente optimizar incrementalidad y UX.
+- **✅ Chat por préstamo optimizado**: Sistema de mensajería con polling inteligente (solo obtiene mensajes nuevos).
 - **🟡 Notificaciones**: Backend operativo (recordatorios, eventos de préstamo); UI y emails opcionales aún por integrar por completo.
 - **🟡 Testing automatizado**: Suite inicial en `tests/` activa; falta ampliar cobertura y documentar resultados actuales.
 
@@ -170,6 +170,13 @@ book_sharing_app_friends/
 └── main.py                    # 🎯 Punto de entrada alternativo
 ```
 
+## ✅ Requisitos
+
+- **Python 3.11**
+- **Poetry ≥ 1.6** (gestión de dependencias del backend)
+- **Node.js ≥ 18** y **npm ≥ 9** (frontend Next.js)
+- **Docker & Docker Compose** (opcional, para servicios externos)
+
 ## 🚀 Instalación y Configuración
 
 ### Desarrollo Local
@@ -252,22 +259,41 @@ book_sharing_app_friends/
 
 ### Testing
 
+#### Backend (pytest)
+
 ```bash
-# Ejecutar todos los tests
-pytest
+# Ejecutar toda la suite con variables de testing activadas
+$env:TESTING="true"; $env:DISABLE_RATE_LIMITING="true"; poetry run pytest -v
 
 # Tests con reporte de cobertura
-pytest --cov=app --cov-report=html --cov-report=term-missing
+poetry run pytest --cov=app --cov-report=term-missing --cov-report=html -v
 
-# Tests específicos
-pytest tests/test_auth_comprehensive.py -v
-pytest tests/test_complete_flow.py -v
+# Ejecutar archivos individuales
+poetry run pytest tests/test_book_flow.py -v
+poetry run pytest tests/test_chat_flow.py -v
+poetry run pytest tests/test_notifications_flow.py -v
 
-# Tests de integración
-pytest tests/test_integration_endpoints.py -v
+# Ejecutar suites específicas
+poetry run pytest tests/test_integration_endpoints.py -v
+poetry run pytest tests/test_rate_limiter.py -v
+```
 
-# Tests de performance
-pytest tests/test_rate_limiter.py -v
+#### Frontend (Vitest + React Testing Library)
+
+```bash
+# Ejecutar toda la suite del frontend
+npm run test
+
+# Ejecutar archivos concretos
+npm run test -- tests/components/notification-bell.test.tsx
+npm run test -- tests/hooks/use-notifications.test.tsx
+
+# Modo watch / UI interactiva
+npm run test:watch
+npm run test:ui
+
+# Reporte de cobertura
+npm run test:coverage
 ```
 
 ### Deployment en Producción

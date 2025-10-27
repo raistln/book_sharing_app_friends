@@ -1,8 +1,8 @@
 """
 Modelo de notificaciones para la aplicación
 """
-from sqlalchemy import Column, String, Boolean, DateTime, Text, Enum as SQLEnum, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Column, String, Boolean, DateTime, Text, Enum as SQLEnum, ForeignKey, JSON
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -38,12 +38,12 @@ class Notification(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    type = Column(SQLEnum(NotificationType), nullable=False)
+    type = Column(SQLEnum(NotificationType, values_callable=lambda x: [e.value for e in x]), nullable=False)
     title = Column(String(255), nullable=False)
     message = Column(Text, nullable=False)
-    priority = Column(SQLEnum(NotificationPriority), default=NotificationPriority.MEDIUM)
+    priority = Column(SQLEnum(NotificationPriority, values_callable=lambda x: [e.value for e in x]), default=NotificationPriority.MEDIUM)
     is_read = Column(Boolean, default=False)
-    data = Column(JSONB, nullable=True)  # Datos adicionales en formato JSON
+    data = Column(JSON, nullable=True)  # Datos adicionales en formato JSON (compatible con SQLite y PostgreSQL)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     read_at = Column(DateTime, nullable=True)

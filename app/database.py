@@ -1,21 +1,31 @@
 """
 Configuración de la base de datos con SQLAlchemy
 """
-from sqlalchemy import create_engine
+import os
 import logging
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
 from app.config import settings
 
 # Log de conexión
 logging.getLogger(__name__).info(f"Usando DATABASE_URL: {settings.DATABASE_URL}")
 
+# Permitir URL alternativa en entornos de test
+database_url = settings.DATABASE_URL
+
+if os.getenv("TESTING") == "true":
+    database_url = os.getenv("TEST_DATABASE_URL", "sqlite:///./test.db")
+
+connect_args = {"check_same_thread": False} if database_url.startswith("sqlite") else {}
+
 # Crear el motor de base de datos
 engine = create_engine(
-    settings.DATABASE_URL,
+    database_url,
     echo=settings.DEBUG,  # Mostrar SQL en consola en modo debug
     pool_pre_ping=True,   # Verificar conexión antes de usar
-    pool_recycle=300      # Reciclar conexiones cada 5 minutos
+    pool_recycle=300,      # Reciclar conexiones cada 5 minutos
+    connect_args=connect_args,
 )
 
 # Crear la sesión de base de datos

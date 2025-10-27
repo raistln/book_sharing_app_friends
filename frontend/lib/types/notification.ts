@@ -30,10 +30,17 @@ export interface Notification {
     loan_id?: string;
     book_id?: string;
     group_id?: string;
+    group_name?: string;
     sender_id?: string;
     sender_name?: string;
     book_title?: string;
     due_date?: string;
+    invitation_id?: string;
+    invitation_code?: string;
+    inviter_id?: string;
+    inviter_name?: string;
+    message?: string;
+    message_preview?: string;
   };
 }
 

@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "cross-env NODE_OPTIONS=\"--require ./tests/polyfill-loader.js\" vitest run",
+    "test:watch": "cross-env NODE_OPTIONS=\"--require ./tests/polyfill-loader.js\" vitest",
+    "test:ui": "cross-env NODE_OPTIONS=\"--require ./tests/polyfill-loader.js\" vitest --ui",
+    "test:coverage": "cross-env NODE_OPTIONS=\"--require ./tests/polyfill-loader.js\" vitest run --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -38,13 +42,22 @@
     "zustand": "^4.5.4"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20.14.11",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^5.1.0",
+    "@vitest/coverage-v8": "^4.0.3",
+    "@vitest/ui": "^4.0.3",
     "autoprefixer": "^10.4.19",
+    "cross-env": "^10.1.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.5",
+    "jsdom": "^27.0.1",
     "postcss": "^8.4.39",
-    "tailwindcss": "^3.4.6"
+    "tailwindcss": "^3.4.6",
+    "vitest": "^4.0.3"
   }
 }
