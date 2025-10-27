@@ -10,7 +10,7 @@ packages = [{include = "app"}]
 python = "^3.11"  # Cambiado de 3.13 a 3.11 para mejor compatibilidad
 fastapi = {extras = ["all"], version = "^0.104.1"}
 uvicorn = {extras = ["standard"], version = "^0.24.0"}
-sqlalchemy = "^2.0.23"
+sqlalchemy = "^2.0.44"
 psycopg2-binary = "^2.9.9"
 alembic = "^1.12.1"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
