@@ -7,10 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test": "cross-env NODE_OPTIONS=\"--require ./tests/polyfill-loader.js\" vitest run",
+    "test:watch": "cross-env NODE_OPTIONS=\"--require ./tests/polyfill-loader.js\" vitest",
+    "test:ui": "cross-env NODE_OPTIONS=\"--require ./tests/polyfill-loader.js\" vitest --ui",
+    "test:coverage": "cross-env NODE_OPTIONS=\"--require ./tests/polyfill-loader.js\" vitest run --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -52,6 +52,7 @@
     "@vitest/coverage-v8": "^4.0.3",
     "@vitest/ui": "^4.0.3",
     "autoprefixer": "^10.4.19",
+    "cross-env": "^10.1.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.5",
     "jsdom": "^27.0.1",
