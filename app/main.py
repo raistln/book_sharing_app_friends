@@ -6,6 +6,7 @@ import logging
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.utils.rate_limiter import get_or_create_limiter, rate_limit_handler, SLOWAPI_AVAILABLE
+from app.utils.migrations import run_migrations
 try:
     from slowapi.errors import RateLimitExceeded
 except ImportError:
@@ -35,6 +36,7 @@ from app.api.search_enhanced import router as search_enhanced_router
 from app.api.reviews import router as reviews_router
 from app.api.notifications import router as notifications_router
 from app.scheduler import start_scheduler, stop_scheduler
+from app.database import engine, Base
 
 # Initialize comprehensive logging system
 setup_logging(log_level=settings.LOG_LEVEL, enable_file_logging=settings.ENABLE_FILE_LOGGING)
@@ -177,7 +179,37 @@ app.include_router(search_enhanced_router, prefix="/discover")  # Búsqueda en B
 async def startup_event():
     """Evento que se ejecuta al iniciar la aplicación"""
     logger.info("Starting up Book Sharing App...")
+
+    try:
+        cors_origins = settings.cors_origins_list
+    except Exception as cors_error:
+        cors_origins = []
+        logger.error("Failed to parse CORS_ORIGINS: %s", cors_error)
+
+    logger.info(
+        "CORS configuration → DEBUG=%s, allowed origins=%s",
+        settings.DEBUG,
+        cors_origins if not settings.DEBUG else "*",
+    )
+
+    if os.getenv("RUN_DB_MIGRATIONS") == "1":
+        try:
+            logger.info("RUN_DB_MIGRATIONS=1 → executing Alembic upgrade")
+            run_migrations()
+            logger.info("Alembic migrations completed successfully")
+        except Exception as exc:
+            logger.exception("Automatic migration failed during startup")
+            raise
     
+    # Opción alternativa: crear el esquema mínimo sin Alembic (solo si se solicita)
+    if os.getenv("CREATE_SCHEMA_IF_MISSING") == "1":
+        try:
+            logger.info("CREATE_SCHEMA_IF_MISSING=1 → creating SQLAlchemy metadata schema if missing")
+            Base.metadata.create_all(bind=engine)
+            logger.info("Schema creation completed (SQLAlchemy metadata)")
+        except Exception:
+            logger.exception("Schema creation via SQLAlchemy metadata failed")
+
     # Iniciar scheduler de tareas programadas
     try:
         start_scheduler()

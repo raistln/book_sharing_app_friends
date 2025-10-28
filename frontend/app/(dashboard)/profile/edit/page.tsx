@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useMyProfile, useUpdateProfile, useChangePassword, useUploadAvatar, useDeleteAvatar } from '@/lib/hooks/use-profile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -155,9 +156,11 @@ export default function EditProfilePage() {
               <div className="flex items-center gap-6">
                 <div className="w-24 h-24 bg-storybook-gold-light rounded-full flex items-center justify-center overflow-hidden">
                   {avatarPreview ? (
-                    <img
+                    <Image
                       src={avatarPreview}
                       alt="Avatar"
+                      width={96}
+                      height={96}
                       className="w-full h-full object-cover"
                     />
                   ) : (

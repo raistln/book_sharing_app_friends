@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -170,9 +171,11 @@ export default function LoanDetailPage({ params }: LoanPageParams) {
                 <p>{loan.book?.author}</p>
               </div>
               {loan.book?.cover_url && (
-                <img
+                <Image
                   src={loan.book.cover_url}
-                  alt={loan.book.title}
+                  alt={loan.book.title ?? 'Portada del libro'}
+                  width={128}
+                  height={192}
                   className="w-32 h-48 object-cover rounded-lg"
                 />
               )}

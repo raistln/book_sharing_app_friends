@@ -161,7 +161,7 @@ export default function EditBookPage() {
               Edit Book Details
             </CardTitle>
             <CardDescription>
-              Update the information for "{book.title}". Fields marked with * are required.
+              Update the information for &quot;{book.title}&quot;. Fields marked with * are required.
             </CardDescription>
           </CardHeader>
           <CardContent>
