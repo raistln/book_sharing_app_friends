@@ -306,7 +306,7 @@ export default function SearchPage() {
           </h2>
           {filters.q && (
             <p className="text-storybook-ink-light mt-1">
-              Buscando: <span className="font-semibold">"{filters.q}"</span>
+              Buscando: <span className="font-semibold">&quot;{filters.q}&quot;</span>
             </p>
           )}
         </div>
@@ -386,9 +386,9 @@ export default function SearchPage() {
 
                     {/* Actions */}
                     <Link href={`/books/${book.id}`} className="block">
-                      <Button variant="outline" className="w-full" size="sm">
-                        <Eye className="mr-2 h-3 w-3" />
-                        Ver detalles
+                      <Button variant="outline" className="w-full justify-start">
+                        <Eye className="mr-2 h-4 w-4" />
+                        Ver detalles y gestionar préstamo
                       </Button>
                     </Link>
                   </CardContent>

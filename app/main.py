@@ -6,6 +6,7 @@ import logging
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.utils.rate_limiter import get_or_create_limiter, rate_limit_handler, SLOWAPI_AVAILABLE
+from app.utils.migrations import run_migrations
 try:
     from slowapi.errors import RateLimitExceeded
 except ImportError:
@@ -177,6 +178,15 @@ app.include_router(search_enhanced_router, prefix="/discover")  # Búsqueda en B
 async def startup_event():
     """Evento que se ejecuta al iniciar la aplicación"""
     logger.info("Starting up Book Sharing App...")
+
+    if os.getenv("RUN_DB_MIGRATIONS") == "1":
+        try:
+            logger.info("RUN_DB_MIGRATIONS=1 → executing Alembic upgrade")
+            run_migrations()
+            logger.info("Alembic migrations completed successfully")
+        except Exception as exc:
+            logger.exception("Automatic migration failed during startup")
+            raise
     
     # Iniciar scheduler de tareas programadas
     try:

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useMessages, useSendMessage } from '@/lib/hooks/use-chat';
 import { Button } from '@/components/ui/button';
@@ -58,10 +59,12 @@ export function ChatBox({ loanId, otherUser }: ChatBoxProps) {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-storybook-gold-light rounded-full flex items-center justify-center">
             {otherUser.avatar_url ? (
-              <img
+              <Image
                 src={otherUser.avatar_url}
                 alt={otherUser.username}
-                className="w-full h-full rounded-full object-cover"
+                width={40}
+                height={40}
+                className="h-full w-full rounded-full object-cover"
               />
             ) : (
               <User className="h-5 w-5 text-storybook-leather" />
@@ -87,7 +90,7 @@ export function ChatBox({ loanId, otherUser }: ChatBoxProps) {
             <div className="flex flex-col items-center justify-center h-full text-center p-8">
               <MessageCircle className="h-12 w-12 text-storybook-ink-light opacity-30 mb-3" />
               <p className="text-storybook-ink-light text-sm">
-                No hay mensajes aún. ¡Inicia la conversación!
+                No hay mensajes aún. ¡Inicia la conversaci&oacute;n!
               </p>
             </div>
           ) : (

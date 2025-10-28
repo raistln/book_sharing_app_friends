@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useMyProfile, useMyStats } from '@/lib/hooks/use-profile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,9 +65,11 @@ export default function ProfilePage() {
                   {/* Avatar */}
                   <div className="w-32 h-32 bg-storybook-gold-light rounded-full flex items-center justify-center mb-4">
                     {profile?.avatar_url ? (
-                      <img
+                      <Image
                         src={profile.avatar_url}
-                        alt={profile.username}
+                        alt={profile.username ?? 'Avatar del usuario'}
+                        width={128}
+                        height={128}
                         className="w-full h-full rounded-full object-cover"
                       />
                     ) : (

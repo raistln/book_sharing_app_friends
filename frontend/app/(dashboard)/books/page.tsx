@@ -186,7 +186,7 @@ export default function BooksPage() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>¿Eliminar libro?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              ¿Estás seguro de que quieres eliminar "{book.title}"? Esta acción no se puede deshacer.
+                              ¿Estás seguro de que quieres eliminar &quot;{book.title}&quot;? Esta acción no se puede deshacer.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
