@@ -148,8 +148,23 @@ app.add_exception_handler(AuthorizationError, auth_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
 # Configure CORS with production security
+import re
+
+def cors_origin_validator(origin: str) -> bool:
+    """Validate if origin is allowed (exact match or Vercel preview)"""
+    if settings.DEBUG:
+        return True
+    # Allow exact matches from CORS_ORIGINS
+    if origin in settings.cors_origins_list:
+        return True
+    # Allow any Vercel preview deployment
+    if re.match(r"https://[a-z0-9-]+\.vercel\.app$", origin):
+        return True
+    return False
+
 app.add_middleware(
     CORSMiddleware,
+    allow_origin_regex=r"https://.*\.vercel\.app" if not settings.DEBUG else None,
     allow_origins=["*"] if settings.DEBUG else settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
