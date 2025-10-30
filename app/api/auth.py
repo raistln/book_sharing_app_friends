@@ -38,15 +38,6 @@ router = APIRouter(
 logger = logging.getLogger("book_sharing.auth")
 
 
-# Explicit OPTIONS handler for CORS preflight
-@router.options("/register")
-@router.options("/login")
-@router.options("/me")
-async def options_handler():
-    """Handle CORS preflight requests"""
-    return {}
-
-
 @router.post(
     "/register",
     response_model=UserSchema,
